@@ -2,7 +2,7 @@ resources:
   jobs:
     jira_analytics_refresh:
       name: jira_analytics_refresh
-      description: "Refresh: Lakeflow Connect ingestion -> silver DLT -> gold DLT"
+      description: "Refresh: Lakeflow Connect ingestion -> silver DLT -> gold DLT -> metric views"
       max_concurrent_runs: 1
       schedule:
         quartz_cron_expression: "0 0 6 * * ?"
@@ -25,3 +25,11 @@ resources:
             - task_key: build_silver
           pipeline_task:
             pipeline_id: ${resources.pipelines.jira_gold_pipeline.id}
+        - task_key: build_metrics
+          depends_on:
+            - task_key: build_gold
+          sql_task:
+            warehouse_id: ${var.warehouse_id}
+            file:
+              path: ${workspace.file_path}/src/metrics/metric_views.sql
+              source: WORKSPACE

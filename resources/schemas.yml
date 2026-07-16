@@ -12,3 +12,7 @@ resources:
       catalog_name: ${var.catalog}
       name: ${var.gold_schema}
       comment: "Analytical marts: sprint velocity, cycle time, portfolio health, team productivity"
+    metrics:
+      catalog_name: ${var.catalog}
+      name: ${var.metrics_schema}
+      comment: "Business semantics: Unity Catalog metric views (governed dimensions + measures)"

@@ -1,0 +1,159 @@
+erDiagram
+    issue {
+        string id PK
+        string issue_key
+        long project_id FK
+        long issue_type_id FK
+        long status_id FK
+        long priority_id FK
+        long resolution_id FK
+        string assignee_id FK
+        string reporter_id FK
+        string creator_id FK
+        string parent_id FK
+        double story_points
+        timestamp created_at
+        timestamp resolved_at
+    }
+    project {
+        long id PK
+        string project_key
+        string name
+        long project_category_id FK
+        string lead_id FK
+    }
+    user {
+        string account_id PK
+        string display_name
+        string email
+        boolean is_active
+    }
+    status {
+        long id PK
+        string name
+        long status_category_id FK
+    }
+    status_category {
+        long id PK
+        string category_key
+        string name
+    }
+    priority {
+        long id PK
+        string name
+    }
+    resolution {
+        long id PK
+        string name
+    }
+    issue_type {
+        long id PK
+        string name
+    }
+    project_category {
+        long id PK
+        string name
+    }
+    board {
+        long id PK
+        string name
+        long project_id FK
+    }
+    sprint {
+        long id PK
+        long board_id FK
+        string name
+        string state
+        timestamp start_date
+        timestamp complete_date
+    }
+    sprint_issue {
+        long sprint_id FK
+        string issue_id FK
+    }
+    epic_issue {
+        string epic_id FK
+        string issue_id FK
+    }
+    issue_field_history {
+        string issue_id FK
+        string field_id
+        string value
+        timestamp updated_at
+        boolean is_current
+    }
+    issue_worklog {
+        string id PK
+        string issue_id FK
+        string author_id FK
+        long time_spent_seconds
+        timestamp started_at
+    }
+    issue_comment {
+        string id PK
+        string issue_id FK
+        string author_id FK
+    }
+    issue_watcher {
+        string issue_id FK
+        string watcher_id FK
+    }
+    issue_link {
+        string id PK
+        string source_issue_id FK
+        string target_issue_id FK
+        long link_type_id FK
+    }
+    issue_link_type {
+        long id PK
+        string name
+    }
+    component {
+        long id PK
+        string name
+        long project_id FK
+    }
+    issue_component {
+        string issue_id FK
+        long component_id FK
+    }
+    version {
+        long id PK
+        string name
+    }
+    issue_version {
+        string issue_id FK
+        long version_id FK
+    }
+    user_group {
+        string account_id FK
+        string group_name
+    }
+
+    project ||--o{ issue : "has"
+    issue_type ||--o{ issue : "typed as"
+    status ||--o{ issue : "in status"
+    priority ||--o{ issue : "prioritized"
+    resolution ||--o{ issue : "resolved as"
+    user ||--o{ issue : "assignee"
+    status_category ||--o{ status : "categorizes"
+    project_category ||--o{ project : "groups"
+    user ||--o{ project : "leads"
+    project ||--o{ board : "has"
+    board ||--o{ sprint : "has"
+    sprint ||--o{ sprint_issue : "contains"
+    issue ||--o{ sprint_issue : "in"
+    issue ||--o{ epic_issue : "epic link"
+    issue ||--o{ issue_field_history : "changelog"
+    issue ||--o{ issue_worklog : "logged"
+    user ||--o{ issue_worklog : "author"
+    issue ||--o{ issue_comment : "commented"
+    issue ||--o{ issue_watcher : "watched"
+    issue ||--o{ issue_link : "source"
+    issue_link_type ||--o{ issue_link : "type"
+    project ||--o{ component : "has"
+    issue ||--o{ issue_component : "tagged"
+    component ||--o{ issue_component : "on"
+    issue ||--o{ issue_version : "fix version"
+    version ||--o{ issue_version : "on"
+    user ||--o{ user_group : "member"

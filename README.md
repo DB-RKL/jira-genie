@@ -38,12 +38,39 @@ This deploys:
 
 | Resource | Type | Notes |
 |---|---|---|
-| `rubjit_jira.bronze` / `silver` / `gold` | schemas | empty until pipelines run |
+| `rubjit_jira.bronze` / `silver` / `gold` / `metrics` | schemas | empty until pipelines run |
 | `jira_ingestion_pipeline` | Lakeflow Connect managed pipeline | full refresh first time |
 | `jira_silver_pipeline` | DLT pipeline (Python) | reads bronze, writes silver |
 | `jira_gold_pipeline` | DLT pipeline (SQL) | reads silver, writes gold |
-| `jira_analytics_refresh` | Job | orchestrates bronze → silver → gold |
+| `jira_analytics_refresh` | Job | orchestrates bronze → silver → gold → metric views |
 | `jira_analytics_dashboard` | Lakeview dashboard | 4 pages, 35 widgets |
+
+## Business semantics (metric views)
+
+The `metrics` schema holds Unity Catalog **metric views** — a governed semantic
+layer (dimensions + measures) over the gold marts, defined in
+`src/metrics/metric_views.sql`. The dashboard, Genie, and any BI/AI tool query
+the same measure definitions, so KPIs like cycle time, velocity, and time-in-status
+are computed identically everywhere.
+
+| Metric view | Source mart | Example measures |
+|---|---|---|
+| `metric_issue` | `gold.fct_issue` | Open Issues, Open Critical, Median Cycle Time (days), Total Story Points |
+| `metric_sprint_velocity` | `gold.fct_sprint_velocity` | Points Completed (velocity), Avg Completion Ratio |
+| `metric_issue_transitions` | `gold.fct_issue_transitions` | Median / P90 Duration (hours) |
+| `metric_worklog` | `gold.fct_worklog` | Total Hours, Contributors |
+
+Metric views are created by the `build_metrics` SQL task in `jira_analytics_refresh`
+(runs after gold). Query a measure with the `MEASURE()` function:
+
+```sql
+SELECT `Project Key`,
+       MEASURE(`Open Issues`),
+       MEASURE(`Median Cycle Time (days)`)
+FROM rubjit_jira.metrics.metric_issue
+GROUP BY `Project Key`
+ORDER BY 2 DESC;
+```
 
 ## Run
 

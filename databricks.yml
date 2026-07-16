@@ -17,6 +17,9 @@ variables:
   gold_schema:
     description: Gold schema for analytical marts
     default: gold
+  metrics_schema:
+    description: Schema for Unity Catalog metric views (business semantics layer)
+    default: metrics
   warehouse_id:
     description: SQL warehouse used by the dashboard and orchestration helper queries
     default: ced20c73f16a2915

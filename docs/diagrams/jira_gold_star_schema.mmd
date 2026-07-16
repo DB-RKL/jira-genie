@@ -1,0 +1,110 @@
+erDiagram
+    fct_issue {
+        string issue_id PK
+        string issue_key
+        long project_id FK
+        long status_id FK
+        string assignee_id FK
+        long current_sprint_id FK
+        double story_points
+        int cycle_time_days
+        int lead_time_days
+        int age_days
+        string age_bucket
+        boolean is_resolved
+    }
+    fct_issue_transitions {
+        string issue_id FK
+        string from_status_id
+        string to_status_id FK
+        timestamp entered_at
+        double duration_hours
+    }
+    fct_sprint_velocity {
+        long sprint_id FK
+        string state
+        double points_in_sprint
+        double points_completed
+        double completion_ratio
+        long issues_completed
+    }
+    fct_worklog {
+        string worklog_id PK
+        string issue_id
+        long project_id FK
+        string author_id FK
+        double time_spent_hours
+        date work_date
+    }
+    dim_project {
+        long project_id PK
+        string project_key
+        string project_name
+        string lead_name
+        long total_issues
+    }
+    dim_user {
+        string account_id PK
+        string display_name
+        string email
+        string groups
+    }
+    dim_status {
+        long status_id PK
+        string status_name
+        string category_key
+        int category_order
+    }
+    dim_sprint {
+        long sprint_id PK
+        string sprint_name
+        string state
+        long board_id
+        int duration_days
+    }
+    dim_date {
+        date date_key PK
+        int year
+        int quarter
+        int month
+    }
+    agg_project_health {
+        long project_id FK
+        long open_issues
+        long open_critical
+        long stale_open
+        double avg_cycle_time_days
+    }
+    agg_assignee_load {
+        string assignee_id FK
+        long project_id FK
+        string priority
+        string age_bucket
+        long open_issues
+    }
+    agg_team_productivity {
+        string assignee_id FK
+        long resolved_30d
+        long resolved_90d
+        double avg_cycle_time_days
+    }
+    agg_time_in_status {
+        long project_id FK
+        string status_name
+        double p50_hours
+        double p90_hours
+    }
+
+    dim_project ||--o{ fct_issue : "project_id"
+    dim_status ||--o{ fct_issue : "status_id"
+    dim_user ||--o{ fct_issue : "assignee_id"
+    dim_sprint ||--o{ fct_issue : "current_sprint_id"
+    dim_date ||--o{ fct_issue : "created date"
+    dim_status ||--o{ fct_issue_transitions : "to_status_id"
+    dim_sprint ||--o{ fct_sprint_velocity : "sprint_id"
+    dim_user ||--o{ fct_worklog : "author_id"
+    dim_project ||--o{ fct_worklog : "project_id"
+    fct_issue ||--o{ agg_project_health : "rolls up"
+    fct_issue ||--o{ agg_assignee_load : "rolls up"
+    fct_issue ||--o{ agg_team_productivity : "rolls up"
+    fct_issue_transitions ||--o{ agg_time_in_status : "rolls up"
