@@ -1,0 +1,166 @@
+{
+  "meta": {
+    "title": "Jira Analytics — Customer Presentation",
+    "subtitle": "Turn Jira into Governed Analytics on Databricks",
+    "audience": "Engineering leaders, PMO, platform owners",
+    "duration_minutes": 20,
+    "slide_count": 12,
+    "brand": "Databricks",
+    "positioning": "Pilot-ready accelerator on Databricks"
+  },
+  "design": {
+    "style": "clean enterprise SaaS",
+    "colors": {
+      "primary": "#003159",
+      "accent": "#FF3621",
+      "background": "#FFFFFF",
+      "text": "#122A45"
+    },
+    "typography": "sans-serif, strong hierarchy",
+    "avoid": ["stock photos", "dense bullet walls", "internal repo names"]
+  },
+  "slides": [
+    {
+      "number": 1,
+      "layout": "title",
+      "title": "Turn Jira into Governed Analytics on Databricks",
+      "subtitle": "Automated delivery insights — from raw tickets to trusted KPIs in one afternoon",
+      "visual": "hero title, minimal, Databricks brand accent"
+    },
+    {
+      "number": 2,
+      "layout": "power_statement",
+      "title": "Your delivery data is in Jira. Your decisions are still in spreadsheets.",
+      "bullets": [
+        "Leadership asks 'Are we on track?' — teams spend hours exporting and reconciling numbers",
+        "Every squad has a different Jira filter; steering committees debate whose metrics are right",
+        "Bottlenecks surface in retros, not in real time"
+      ],
+      "visual": "bold headline, 3 pain bullets, warning tone"
+    },
+    {
+      "number": 3,
+      "layout": "cards_2x2",
+      "title": "Every delivery stakeholder needs the same truth",
+      "cards": [
+        {"title": "Engineering Manager", "pain": "Weekly reviews built from scratch", "need": "Sprint health, carryover, aging blockers"},
+        {"title": "PMO / Program Lead", "pain": "Cross-project risk visibility", "need": "Portfolio KPIs, stale work, critical backlog"},
+        {"title": "Team Lead", "pain": "Retros based on anecdotes", "need": "Planned vs completed, velocity trends"},
+        {"title": "Executive", "pain": "Needs snapshot, not Jira fluency", "need": "Open issues, cycle time, throughput"}
+      ]
+    },
+    {
+      "number": 4,
+      "layout": "cards_2x2",
+      "title": "Four outcomes, one platform",
+      "cards": [
+        {"title": "Portfolio health", "body": "Open critical issues, stale work, throughput across projects"},
+        {"title": "Sprint predictability", "body": "Planned vs completed points, velocity trends, carryover"},
+        {"title": "Bottleneck detection", "body": "Time-in-status, transition delays, aging issues"},
+        {"title": "Team productivity", "body": "Assignee load, resolution counts, worklog trends"}
+      ]
+    },
+    {
+      "number": 5,
+      "layout": "stat_plus_bullets",
+      "title": "Portfolio health at a glance",
+      "stat": {"value": "1 view", "label": "Across every project"},
+      "bullets": [
+        "Open issues, open critical, and stale (>30 day) work per project",
+        "Average cycle time and lead time by project",
+        "Created vs resolved in the last 30 days"
+      ],
+      "footer": "Dashboard: Project Portfolio Health"
+    },
+    {
+      "number": 6,
+      "layout": "stat_plus_bullets",
+      "title": "Sprint predictability",
+      "stat": {"value": "Every sprint", "label": "Planned vs completed"},
+      "bullets": [
+        "Story points and issues: planned, completed, added mid-sprint",
+        "Completion ratio and carryover for last 12 closed sprints",
+        "Active sprint snapshot with scope-change tracking"
+      ],
+      "footer": "Dashboard: Sprint Velocity & Burndown"
+    },
+    {
+      "number": 7,
+      "layout": "stat_plus_bullets",
+      "title": "Bottleneck detection",
+      "stat": {"value": "Real time", "label": "Where work stalls"},
+      "bullets": [
+        "Median and p90 time-in-status per project and status",
+        "Full status transition history with duration in hours",
+        "Aging open issues by age bucket"
+      ],
+      "footer": "Dashboard: Cycle Time & Aging"
+    },
+    {
+      "number": 8,
+      "layout": "stat_plus_bullets",
+      "title": "Team productivity and load",
+      "stat": {"value": "Per person", "label": "Load and throughput"},
+      "bullets": [
+        "Open workload per assignee by priority and age",
+        "Resolution counts (30d / 90d) and avg cycle time",
+        "Worklog hours by contributor"
+      ],
+      "footer": "Dashboard: Team Productivity"
+    },
+    {
+      "number": 9,
+      "layout": "architecture_flow",
+      "title": "How it works — medallion architecture on Databricks",
+      "flow": ["Jira Cloud", "Lakeflow Connect", "Bronze (28 tables)", "Silver DLT", "Gold marts", "Dashboard + Genie"],
+      "bullets": [
+        "Ingest: Lakeflow Connect pulls 28 Jira source tables",
+        "Transform: Silver normalizes; gold builds KPI marts",
+        "Consume: Dashboard + Genie on governed tables",
+        "Orchestrate: One job chains bronze → silver → gold"
+      ]
+    },
+    {
+      "number": 10,
+      "layout": "table",
+      "title": "What ships in the accelerator",
+      "rows": [
+        ["Ingestion", "28 Jira source tables via Lakeflow Connect"],
+        ["Silver layer", "Fivetran-parity normalized schema"],
+        ["Gold layer", "4 facts, 4 dims, 4 aggregate marts"],
+        ["Dashboard", "4 pages, 35 widgets"],
+        ["Genie space", "Curated tables + glossary"],
+        ["Orchestration", "Single refresh job"]
+      ],
+      "footnote": "Pilot-ready today; production adds parameterization and scheduling"
+    },
+    {
+      "number": 11,
+      "layout": "stats_2x2",
+      "title": "Expected business impact",
+      "stats": [
+        {"value": "20–40%", "label": "Reduction in manual Jira reporting"},
+        {"value": "15–30%", "label": "Faster cycle-time diagnosis"},
+        {"value": "10–20%", "label": "Sprint predictability improvement"},
+        {"value": "1", "label": "Governed source of truth"}
+      ]
+    },
+    {
+      "number": 12,
+      "layout": "cta",
+      "title": "Get started today",
+      "steps": [
+        {"step": 1, "title": "Connect", "body": "Lakeflow Connect Jira in Catalog Explorer"},
+        {"step": 2, "title": "Deploy", "body": "databricks bundle deploy"},
+        {"step": 3, "title": "Refresh", "body": "databricks bundle run jira_analytics_refresh"},
+        {"step": 4, "title": "Explore", "body": "Dashboard + first Genie question"}
+      ],
+      "cta": "Your delivery data is already in Jira. Put it to work.",
+      "genie_examples": [
+        "Which projects have the most open critical issues?",
+        "What was the velocity for the last 5 closed sprints?",
+        "Show me the oldest open bugs and who they're assigned to"
+      ]
+    }
+  ]
+}

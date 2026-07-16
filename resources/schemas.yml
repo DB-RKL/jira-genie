@@ -1,0 +1,14 @@
+resources:
+  schemas:
+    bronze:
+      catalog_name: ${var.catalog}
+      name: ${var.bronze_schema}
+      comment: "Raw landing from Lakeflow Connect Jira connector (28 source tables)"
+    silver:
+      catalog_name: ${var.catalog}
+      name: ${var.silver_schema}
+      comment: "Fivetran-parity Jira ERD (normalized, deduped, typed)"
+    gold:
+      catalog_name: ${var.catalog}
+      name: ${var.gold_schema}
+      comment: "Analytical marts: sprint velocity, cycle time, portfolio health, team productivity"

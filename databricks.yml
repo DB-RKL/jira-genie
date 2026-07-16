@@ -1,0 +1,37 @@
+bundle:
+  name: jira-analytics
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Catalog for all Jira analytics tables
+    default: rubjit_jira
+  bronze_schema:
+    description: Bronze schema for Lakeflow Connect Jira ingestion landing
+    default: bronze
+  silver_schema:
+    description: Silver schema for Fivetran-parity ERD
+    default: silver
+  gold_schema:
+    description: Gold schema for analytical marts
+    default: gold
+  warehouse_id:
+    description: SQL warehouse used by the dashboard and orchestration helper queries
+    default: ced20c73f16a2915
+  jira_connection_name:
+    description: Name of the Lakeflow Connect Jira connection created in Catalog Explorer
+    default: jira_databricks_atlassian
+  owner_email:
+    description: Owner of all created resources
+    default: rubjit.lalli@databricks.com
+
+targets:
+  fe_vm:
+    default: true
+    mode: development
+    workspace:
+      host: https://fevm-serverless-stable-wx20co.cloud.databricks.com
+    run_as:
+      user_name: rubjit.lalli@databricks.com

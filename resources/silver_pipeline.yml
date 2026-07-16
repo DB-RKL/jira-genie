@@ -1,0 +1,23 @@
+resources:
+  pipelines:
+    jira_silver_pipeline:
+      name: jira_silver_pipeline
+      catalog: ${var.catalog}
+      target: ${var.silver_schema}
+      channel: PREVIEW
+      photon: true
+      serverless: true
+      development: true
+      continuous: false
+      libraries:
+        - file:
+            path: ../src/silver/core_entities.py
+        - file:
+            path: ../src/silver/issue_history.py
+        - file:
+            path: ../src/silver/relationships.py
+        - file:
+            path: ../src/silver/lookups.py
+      configuration:
+        bronze_catalog: ${var.catalog}
+        bronze_schema: ${var.bronze_schema}

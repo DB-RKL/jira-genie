@@ -1,0 +1,17 @@
+# Databricks local state
+.databricks/
+
+# Packaging artifacts
+*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
