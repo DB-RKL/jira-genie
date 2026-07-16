@@ -18,6 +18,7 @@ HOST="${HOST:-https://fevm-serverless-stable-wx20co.cloud.databricks.com}"
 TOKEN="$(databricks auth token --host "$HOST" --profile "$PROFILE" 2>/dev/null | python3 -c 'import json,sys;print(json.load(sys.stdin)["access_token"])')"
 WAREHOUSE_ID="${WAREHOUSE_ID:-ced20c73f16a2915}"
 CATALOG="${CATALOG:-rubjit_jira}"
+METRICS_SCHEMA="${METRICS_SCHEMA:-metrics}"
 
 INSTRUCTIONS=$(cat <<'EOT'
 You answer questions about Jira data ingested via Databricks Lakeflow Connect.
@@ -34,13 +35,22 @@ Glossary
 - "Velocity" — points_completed in fct_sprint_velocity for closed sprints.
 - "Critical" issues — priority in ('Blocker', 'Critical', 'Highest').
 
-Default to the gold marts (fct_issue, fct_sprint_velocity, agg_*). Only query silver when a user
-asks for fields not in gold.
+Prefer the governed metric views in the metrics schema (metric_issue, metric_sprint_velocity,
+metric_issue_transitions, metric_worklog). They carry the canonical KPI definitions, so query
+their measures with the MEASURE() function, e.g.:
+  SELECT `Project Key`, MEASURE(`Open Issues`), MEASURE(`Median Cycle Time (days)`)
+  FROM metrics.metric_issue GROUP BY `Project Key`;
+Fall back to the gold marts (fct_issue, fct_sprint_velocity, agg_*) for fields not exposed as a
+metric, and only query silver when a user asks for fields not in gold.
 EOT
 )
 
-# Tables to expose to the Genie space.
+# Tables to expose to the Genie space. Metric views first so Genie uses the governed semantics.
 TABLES=(
+  "$CATALOG.$METRICS_SCHEMA.metric_issue"
+  "$CATALOG.$METRICS_SCHEMA.metric_sprint_velocity"
+  "$CATALOG.$METRICS_SCHEMA.metric_issue_transitions"
+  "$CATALOG.$METRICS_SCHEMA.metric_worklog"
   "$CATALOG.gold.fct_issue"
   "$CATALOG.gold.fct_issue_transitions"
   "$CATALOG.gold.fct_sprint_velocity"
@@ -84,7 +94,7 @@ PAYLOAD=$(python3 -c '
 import json, os, sys
 print(json.dumps({
   "title": "Jira Analytics",
-  "description": "Natural-language Q&A over the Jira analytics gold/silver tables.",
+  "description": "Natural-language Q&A over the Jira analytics semantic layer (metric views) and gold/silver tables.",
   "warehouse_id": os.environ["WAREHOUSE_ID"],
   "tables": json.loads(os.environ["TABLES_JSON"]),
   "instructions": os.environ["INSTRUCTIONS"],
