@@ -9,7 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follo
 ### Added
 
 - Lakeflow Connect Jira ingestion pipeline (28 bronze tables)
-- Silver DLT pipeline (Fivetran-parity ERD with Lakeflow column mapping)
+- Silver DLT pipeline (normalized Jira ERD with Lakeflow column mapping)
 - Gold DLT pipeline (issue facts, sprint velocity, transitions, worklogs, aggregates)
 - Eight Unity Catalog metric views as single source of truth for dashboard and Genie
 - Single-page AI/BI Lakeview dashboard (33 widgets)

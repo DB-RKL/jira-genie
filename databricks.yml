@@ -8,7 +8,7 @@ variables:
   bronze_schema:
     description: Bronze schema for Lakeflow Connect landing
   silver_schema:
-    description: Silver schema for Fivetran-parity ERD
+    description: Silver schema for normalized Jira ERD
   gold_schema:
     description: Gold schema for analytical marts
   metrics_schema:

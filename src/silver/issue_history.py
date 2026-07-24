@@ -1,6 +1,6 @@
 """Silver layer: issue field history (changelog) tables.
 
-Fivetran splits historical issue field values into `issue_field_history` (scalar fields)
+The delivery analytics model splits historical issue field values into `issue_field_history` (scalar fields)
 and `issue_multiselect_history` (array-valued fields). Lakeflow Connect lands current
 values in `issue_field_values`; we split here based on field type metadata.
 """

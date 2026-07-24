@@ -1,7 +1,7 @@
-"""Silver layer: core Jira entities mapped to Fivetran-parity table names.
+"""Silver layer: core Jira entities mapped to canonical delivery table names.
 
-Reads from the bronze layer configured in config/workspace.yml (pipeline configuration)
-and emits canonical Fivetran-style normalized tables. Column names are mapped from the
+Reads from the bronze layer configured in config/pipeline.yaml (pipeline configuration)
+and emits normalized canonical tables. Column names are mapped from the
 Lakeflow Connect Jira connector (camelCase REST fields) with fallbacks for legacy shapes.
 """
 
@@ -13,7 +13,7 @@ from layer_config import bronze_fqn, pick
 
 @dlt.table(
     name="issue",
-    comment="Fivetran-parity issue (core fields only; custom/historical fields live in issue_field_history).",
+    comment="Canonical issue entity (core fields only; custom/historical fields live in issue_field_history).",
     table_properties={"quality": "silver"},
 )
 @dlt.expect_or_drop("valid_id", "id IS NOT NULL")

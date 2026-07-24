@@ -2,6 +2,10 @@
 
 ## Data Flow
 
+![Jira Analytics data model overview](diagrams/jira_data_model_overview.png)
+
+See [data-model.md](data-model.md) for full ER diagrams and regeneration instructions.
+
 ```
 databricks.atlassian.net
         │
@@ -9,7 +13,7 @@ databricks.atlassian.net
 Lakeflow Connect (28 Jira source tables)
         │
         ▼
-bronze.*  ──►  silver.* (Fivetran-parity ERD)  ──►  gold.* (marts)
+bronze.*  ──►  silver.* (normalized Jira ERD)  ──►  gold.* (marts)
                                                         │
                                                         ▼
                                               metrics.* (8 metric views)
@@ -30,7 +34,7 @@ bronze.*  ──►  silver.* (Fivetran-parity ERD)  ──►  gold.* (marts)
 
 ## Bronze Tables (Lakeflow Connect)
 
-28 source tables including `issues_without_deletes`, `issue_field_values`, `projects`, `sprints`, `users`, and lookup tables. The silver layer maps Lakeflow camelCase columns to Fivetran-parity names.
+28 source tables including `issues_without_deletes`, `issue_field_values`, `projects`, `sprints`, `users`, and lookup tables. The silver layer maps Lakeflow camelCase columns to canonical delivery table names.
 
 ## Silver ERD
 
@@ -41,7 +45,9 @@ Python DLT pipelines in `src/silver/`:
 - `relationships.py` — links, sprints, epics, components, versions
 - `lookups.py` — boards, sprints, groups, permission schemes
 
-See [`docs/diagrams/jira_silver_er.mmd`](diagrams/jira_silver_er.mmd) for the entity-relationship diagram.
+See [data-model.md](data-model.md) for the full silver ER diagram.
+
+![Silver entity-relationship diagram](diagrams/jira_silver_er.png)
 
 ## Gold Marts
 
@@ -53,7 +59,9 @@ SQL DLT materialized views in `src/gold/`:
 - `fct_worklog` — logged hours
 - `aggregates.sql` — project health, assignee load, team productivity, time in status
 
-See [`docs/diagrams/jira_gold_star_schema.mmd`](diagrams/jira_gold_star_schema.mmd).
+See [data-model.md](data-model.md) for the full gold star schema diagram.
+
+![Gold star schema](diagrams/jira_gold_star_schema.png)
 
 ## Metric Views
 

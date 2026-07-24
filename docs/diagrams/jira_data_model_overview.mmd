@@ -1,0 +1,50 @@
+flowchart TB
+  subgraph source [Jira Cloud]
+    JiraAPI[Atlassian REST API]
+  end
+
+  subgraph bronze [Bronze · Lakeflow Connect]
+    direction TB
+    B1[issues_without_deletes]
+    B2[issue_field_values]
+    B3[projects · sprints · users]
+    B4[28 source tables]
+  end
+
+  subgraph silver [Silver · Normalized Jira ERD]
+    direction TB
+    S1[issue · project · user]
+    S2[status · priority · issue_type]
+    S3[issue_field_history · worklog]
+    S4[sprint_issue · issue_link · epic_issue]
+  end
+
+  subgraph gold [Gold · Analytical Marts]
+    direction TB
+    G1[fct_issue]
+    G2[fct_sprint_velocity]
+    G3[fct_issue_transitions · fct_worklog]
+    G4[agg_project_health · agg_assignee_load]
+    G5[dim_project · dim_user · dim_status]
+  end
+
+  subgraph metrics [Metrics · Unity Catalog Metric Views]
+    direction TB
+    M1[metric_issue]
+    M2[metric_sprint_velocity]
+    M3[metric_project_health]
+    M4[+ 5 more metric views]
+  end
+
+  subgraph consume [Consumption]
+    direction LR
+    C1[Lakeview Dashboard]
+    C2[Genie Space]
+  end
+
+  JiraAPI --> bronze
+  bronze --> silver
+  silver --> gold
+  gold --> metrics
+  metrics --> C1
+  metrics --> C2
