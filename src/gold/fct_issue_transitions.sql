@@ -10,7 +10,7 @@ WITH status_changes AS (
     h.updated_at AS entered_at,
     LEAD(h.updated_at) OVER (PARTITION BY h.issue_id ORDER BY h.updated_at) AS exited_at,
     LAG(CAST(h.value AS STRING)) OVER (PARTITION BY h.issue_id ORDER BY h.updated_at) AS prev_status_id_raw
-  FROM rubjit_jira.silver.issue_field_history h
+  FROM ${silver_catalog}.${silver_schema}.issue_field_history h
   WHERE h.field_id = 'status'
 )
 SELECT
@@ -28,10 +28,10 @@ SELECT
     THEN (UNIX_TIMESTAMP(sc.exited_at) - UNIX_TIMESTAMP(sc.entered_at)) / 3600.0
   END AS duration_hours
 FROM status_changes sc
-LEFT JOIN rubjit_jira.silver.issue ip ON ip.id = sc.issue_id
-LEFT JOIN rubjit_jira.silver.status s_from
+LEFT JOIN ${silver_catalog}.${silver_schema}.issue ip ON ip.id = sc.issue_id
+LEFT JOIN ${silver_catalog}.${silver_schema}.status s_from
   ON TRY_CAST(sc.prev_status_id_raw AS BIGINT) = s_from.id
-LEFT JOIN rubjit_jira.silver.status s_to
+LEFT JOIN ${silver_catalog}.${silver_schema}.status s_to
   ON TRY_CAST(sc.status_id_raw AS BIGINT) = s_to.id
-LEFT JOIN rubjit_jira.silver.status_category cat_to
+LEFT JOIN ${silver_catalog}.${silver_schema}.status_category cat_to
   ON cat_to.id = s_to.status_category_id;

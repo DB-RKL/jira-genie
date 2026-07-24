@@ -1,0 +1,16 @@
+resources:
+  jobs:
+    jira_build_metrics:
+      name: jira_build_metrics
+      description: "Create or refresh Unity Catalog metric views over gold marts"
+      max_concurrent_runs: 1
+      email_notifications:
+        on_failure:
+          - ${var.owner_email}
+      tasks:
+        - task_key: build_metrics
+          sql_task:
+            warehouse_id: ${var.warehouse_id}
+            file:
+              path: ${workspace.file_path}/src/metrics/metric_views.sql
+              source: WORKSPACE

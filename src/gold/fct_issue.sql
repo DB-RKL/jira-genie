@@ -8,17 +8,17 @@ WITH first_in_progress AS (
   SELECT
     h.issue_id,
     MIN(h.updated_at) AS started_at
-  FROM rubjit_jira.silver.issue_field_history h
-  JOIN rubjit_jira.silver.status s ON CAST(h.value AS STRING) = CAST(s.id AS STRING)
-  JOIN rubjit_jira.silver.status_category sc ON sc.id = s.status_category_id
+  FROM ${silver_catalog}.${silver_schema}.issue_field_history h
+  JOIN ${silver_catalog}.${silver_schema}.status s ON CAST(h.value AS STRING) = CAST(s.id AS STRING)
+  JOIN ${silver_catalog}.${silver_schema}.status_category sc ON sc.id = s.status_category_id
   WHERE h.field_id = 'status'
     AND sc.category_key = 'indeterminate'
   GROUP BY h.issue_id
 ),
 current_sprint AS (
   SELECT issue_id, MAX(sprint_id) AS current_sprint_id
-  FROM rubjit_jira.silver.sprint_issue si
-  JOIN rubjit_jira.silver.sprint sp ON sp.id = si.sprint_id
+  FROM ${silver_catalog}.${silver_schema}.sprint_issue si
+  JOIN ${silver_catalog}.${silver_schema}.sprint sp ON sp.id = si.sprint_id
   WHERE sp.state IN ('active', 'closed')
   GROUP BY issue_id
 )
@@ -80,15 +80,15 @@ SELECT
       ELSE '90d+'
     END
   END AS age_bucket
-FROM rubjit_jira.silver.issue i
-LEFT JOIN rubjit_jira.silver.project p ON p.id = i.project_id
-LEFT JOIN rubjit_jira.silver.issue_type it ON it.id = i.issue_type_id
+FROM ${silver_catalog}.${silver_schema}.issue i
+LEFT JOIN ${silver_catalog}.${silver_schema}.project p ON p.id = i.project_id
+LEFT JOIN ${silver_catalog}.${silver_schema}.issue_type it ON it.id = i.issue_type_id
 LEFT JOIN LIVE.dim_status ds ON ds.status_id = i.status_id
-LEFT JOIN rubjit_jira.silver.priority pr ON pr.id = i.priority_id
-LEFT JOIN rubjit_jira.silver.resolution rs ON rs.id = i.resolution_id
-LEFT JOIN rubjit_jira.silver.`user` ua ON ua.account_id = i.assignee_id
-LEFT JOIN rubjit_jira.silver.`user` ur ON ur.account_id = i.reporter_id
-LEFT JOIN rubjit_jira.silver.epic_issue ei ON ei.issue_id = i.id
+LEFT JOIN ${silver_catalog}.${silver_schema}.priority pr ON pr.id = i.priority_id
+LEFT JOIN ${silver_catalog}.${silver_schema}.resolution rs ON rs.id = i.resolution_id
+LEFT JOIN ${silver_catalog}.${silver_schema}.`user` ua ON ua.account_id = i.assignee_id
+LEFT JOIN ${silver_catalog}.${silver_schema}.`user` ur ON ur.account_id = i.reporter_id
+LEFT JOIN ${silver_catalog}.${silver_schema}.epic_issue ei ON ei.issue_id = i.id
 LEFT JOIN current_sprint cs ON cs.issue_id = i.id
 LEFT JOIN LIVE.dim_sprint ds_sprint ON ds_sprint.sprint_id = cs.current_sprint_id
 LEFT JOIN first_in_progress fip ON fip.issue_id = i.id;

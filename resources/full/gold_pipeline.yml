@@ -1,0 +1,30 @@
+resources:
+  pipelines:
+    jira_gold_pipeline:
+      name: jira_gold_pipeline
+      catalog: ${var.catalog}
+      target: ${resources.schemas.gold.name}
+      channel: PREVIEW
+      photon: true
+      serverless: true
+      development: true
+      continuous: false
+      libraries:
+        - file:
+            path: ../../src/gold/dimensions.sql
+        - file:
+            path: ../../src/gold/fct_issue.sql
+        - file:
+            path: ../../src/gold/fct_issue_transitions.sql
+        - file:
+            path: ../../src/gold/fct_sprint_velocity.sql
+        - file:
+            path: ../../src/gold/fct_worklog.sql
+        - file:
+            path: ../../src/gold/aggregates.sql
+      configuration:
+        catalog: ${var.catalog}
+        silver_catalog: ${var.catalog}
+        silver_schema: ${resources.schemas.silver.name}
+        gold_catalog: ${var.catalog}
+        gold_schema: ${resources.schemas.gold.name}

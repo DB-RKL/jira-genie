@@ -1,40 +1,59 @@
 bundle:
   name: jira-analytics
-
-include:
-  - resources/*.yml
+  engine: direct
 
 variables:
   catalog:
-    description: Catalog for all Jira analytics tables
-    default: rubjit_jira
+    description: Unity Catalog for all layers (must exist)
   bronze_schema:
-    description: Bronze schema for Lakeflow Connect Jira ingestion landing
-    default: bronze
+    description: Bronze schema for Lakeflow Connect landing
   silver_schema:
     description: Silver schema for Fivetran-parity ERD
-    default: silver
   gold_schema:
     description: Gold schema for analytical marts
-    default: gold
   metrics_schema:
-    description: Schema for Unity Catalog metric views (business semantics layer)
-    default: metrics
-  warehouse_id:
-    description: SQL warehouse used by the dashboard and orchestration helper queries
-    default: ced20c73f16a2915
+    description: Metrics schema for Unity Catalog metric views
   jira_connection_name:
-    description: Name of the Lakeflow Connect Jira connection created in Catalog Explorer
-    default: jira_databricks_atlassian
+    description: Lakeflow Connect Jira connection name
+  warehouse_id:
+    description: SQL warehouse for dashboard, Genie, and jobs
   owner_email:
-    description: Owner of all created resources
-    default: rubjit.lalli@databricks.com
+    description: Workspace user email (dashboard/Genie folder path)
+  dashboard_name:
+    description: Lakeview dashboard display name
+  genie_space_name:
+    description: Genie space title
+
+include:
+  - resources/common/*.yml
+  - resources/full/*.yml # Updated by sync_config.sh
 
 targets:
-  fe_vm:
+  dev:
     default: true
     mode: development
-    workspace:
-      host: https://fevm-serverless-stable-wx20co.cloud.databricks.com
-    run_as:
-      user_name: rubjit.lalli@databricks.com
+    variables:
+      catalog: ""
+      bronze_schema: "jira_bronze"
+      silver_schema: "jira_silver"
+      gold_schema: "jira_gold"
+      metrics_schema: "jira_metrics"
+      jira_connection_name: ""
+      warehouse_id: ""
+      owner_email: ""
+      dashboard_name: "Jira Analytics"
+      genie_space_name: "Jira Analytics"
+
+  prod:
+    mode: production
+    variables:
+      catalog: ""
+      bronze_schema: "jira_bronze"
+      silver_schema: "jira_silver"
+      gold_schema: "jira_gold"
+      metrics_schema: "jira_metrics"
+      jira_connection_name: ""
+      warehouse_id: ""
+      owner_email: ""
+      dashboard_name: "Jira Analytics"
+      genie_space_name: "Jira Analytics"

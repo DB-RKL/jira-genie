@@ -16,7 +16,7 @@ SELECT
   w.created_at,
   w.updated_at,
   CAST(w.started_at AS DATE) AS work_date
-FROM rubjit_jira.silver.issue_worklog w
-LEFT JOIN rubjit_jira.silver.issue i ON i.id = w.issue_id
-LEFT JOIN rubjit_jira.silver.project p ON p.id = i.project_id
-LEFT JOIN rubjit_jira.silver.`user` u ON u.account_id = w.author_id;
+FROM ${silver_catalog}.${silver_schema}.issue_worklog w
+LEFT JOIN ${silver_catalog}.${silver_schema}.issue i ON i.id = w.issue_id
+LEFT JOIN ${silver_catalog}.${silver_schema}.project p ON p.id = i.project_id
+LEFT JOIN ${silver_catalog}.${silver_schema}.`user` u ON u.account_id = w.author_id;

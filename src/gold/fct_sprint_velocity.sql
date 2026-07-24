@@ -13,9 +13,9 @@ WITH sprint_membership AS (
     sp.complete_date,
     sp.end_date,
     sp.state
-  FROM rubjit_jira.silver.sprint_issue si
-  JOIN rubjit_jira.silver.sprint sp ON sp.id = si.sprint_id
-  LEFT JOIN rubjit_jira.silver.issue i ON i.id = si.issue_id
+  FROM ${silver_catalog}.${silver_schema}.sprint_issue si
+  JOIN ${silver_catalog}.${silver_schema}.sprint sp ON sp.id = si.sprint_id
+  LEFT JOIN ${silver_catalog}.${silver_schema}.issue i ON i.id = si.issue_id
 )
 SELECT
   sm.sprint_id,
@@ -47,7 +47,7 @@ SELECT
     ) / SUM(sm.story_points)
   END AS completion_ratio
 FROM sprint_membership sm
-JOIN rubjit_jira.silver.sprint sp ON sp.id = sm.sprint_id
-LEFT JOIN rubjit_jira.silver.board b ON b.id = sp.board_id
-LEFT JOIN rubjit_jira.silver.project p ON p.id = b.project_id
+JOIN ${silver_catalog}.${silver_schema}.sprint sp ON sp.id = sm.sprint_id
+LEFT JOIN ${silver_catalog}.${silver_schema}.board b ON b.id = sp.board_id
+LEFT JOIN ${silver_catalog}.${silver_schema}.project p ON p.id = b.project_id
 GROUP BY ALL;

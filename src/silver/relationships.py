@@ -11,41 +11,41 @@ Includes:
 import dlt
 from pyspark.sql import functions as F
 
-BRONZE = "rubjit_jira.bronze"
-
+from layer_config import bronze_fqn, pick
 
 @dlt.table(name="issue_link", comment="Directed links between issues.")
 def issue_link():
-    src = spark.read.table(f"{BRONZE}.issue_links")
+    src = spark.read.table(bronze_fqn("issue_links"))
     cols = set(src.columns)
 
-    def col(name, default=None):
-        return F.col(name) if name in cols else F.lit(default)
+    source_id = pick(cols, "source_issue_id", "issue_id")
+    target_id = pick(cols, "target_issue_id", "related_issue_id")
+    link_type_id = pick(cols, "link_type_id")
 
     return src.select(
-        F.col("id").cast("string").alias("id"),
-        col("source_issue_id").cast("string").alias("source_issue_id"),
-        col("target_issue_id").cast("string").alias("target_issue_id"),
-        col("link_type_id").cast("long").alias("link_type_id"),
+        F.concat_ws("-", source_id, target_id, pick(cols, "relationship", "link_type_name")).alias("id"),
+        source_id.cast("string").alias("source_issue_id"),
+        target_id.cast("string").alias("target_issue_id"),
+        link_type_id.cast("long").alias("link_type_id"),
     )
 
 
 @dlt.table(name="issue_link_type", comment="Dedup'd link type lookup (blocks, relates to, etc.)")
 def issue_link_type():
-    src = spark.read.table(f"{BRONZE}.issue_links")
+    src = spark.read.table(bronze_fqn("issue_links"))
     cols = set(src.columns)
 
-    def col(name, default=None):
-        return F.col(name) if name in cols else F.lit(default)
+    link_type_id = pick(cols, "link_type_id")
+    link_type_name = pick(cols, "link_type_name", "relationship")
 
     return (
         src.select(
-            col("link_type_id").cast("long").alias("id"),
-            col("link_type_name").alias("name"),
-            col("inward").alias("inward_description"),
-            col("outward").alias("outward_description"),
+            link_type_id.cast("long").alias("id"),
+            link_type_name.alias("name"),
+            pick(cols, "inward", "inward_description").alias("inward_description"),
+            pick(cols, "outward", "outward_description").alias("outward_description"),
         )
-        .where(F.col("id").isNotNull())
+        .where(F.col("name").isNotNull())
         .distinct()
     )
 
@@ -55,7 +55,7 @@ def issue_link_type():
     comment="Many-to-many bridge between sprints and issues. Derived from issues.sprint_ids array.",
 )
 def sprint_issue():
-    issues = spark.read.table(f"{BRONZE}.issues")
+    issues = spark.read.table(bronze_fqn("issues"))
     cols = set(issues.columns)
     sprint_col = "sprint_ids" if "sprint_ids" in cols else ("sprints" if "sprints" in cols else None)
     if sprint_col is None:
@@ -82,13 +82,21 @@ def sprint_issue():
     comment="Bridge linking child issues to their epic. Derived from issues.parent_id where parent type = Epic.",
 )
 def epic_issue():
-    issues = spark.read.table(f"{BRONZE}.issues").alias("c")
-    issue_types = spark.read.table(f"{BRONZE}.issue_types").alias("t")
-    parents = spark.read.table(f"{BRONZE}.issues").alias("p")
+    issues = spark.read.table(bronze_fqn("issues"))
+    cols = set(issues.columns)
+    parent_col = next((name for name in ("parent_id", "parentId", "parent") if name in cols), None)
+    if parent_col is None:
+        return issues.select(
+            F.lit(None).cast("string").alias("epic_id"),
+            F.lit(None).cast("string").alias("issue_id"),
+        ).where(F.lit(False))
+
+    issue_types = spark.read.table(bronze_fqn("issue_types")).alias("t")
+    parents = spark.read.table(bronze_fqn("issues")).alias("p")
 
     return (
-        issues
-        .join(parents, F.col("c.parent_id") == F.col("p.id"), "inner")
+        issues.alias("c")
+        .join(parents, F.col(f"c.{parent_col}") == F.col("p.id"), "inner")
         .join(issue_types, F.col("p.issue_type_id") == F.col("t.id"), "inner")
         .where(F.lower(F.col("t.name")) == "epic")
         .select(
@@ -101,7 +109,7 @@ def epic_issue():
 
 @dlt.table(name="component", comment="Components (deduped from project_components).")
 def component():
-    src = spark.read.table(f"{BRONZE}.project_components")
+    src = spark.read.table(bronze_fqn("project_components"))
     cols = set(src.columns)
 
     def col(name, default=None):
@@ -109,11 +117,11 @@ def component():
 
     return src.select(
         F.col("id").cast("long").alias("id"),
-        col("name").alias("name"),
-        col("description").alias("description"),
-        col("lead_account_id").alias("lead_id"),
-        col("project_id").cast("long").alias("project_id"),
-        col("assignee_type").alias("assignee_type"),
+        pick(cols, "name").alias("name"),
+        pick(cols, "description").alias("description"),
+        pick(cols, "lead_account_id", "lead").alias("lead_id"),
+        pick(cols, "project_id", "projectId").cast("long").alias("project_id"),
+        pick(cols, "assignee_type", "assigneeType").alias("assignee_type"),
     )
 
 
@@ -122,7 +130,7 @@ def component():
     comment="Bridge issue <-> component. Derived from issues.components array if present.",
 )
 def issue_component():
-    issues = spark.read.table(f"{BRONZE}.issues")
+    issues = spark.read.table(bronze_fqn("issues"))
     cols = set(issues.columns)
     comp_col = "component_ids" if "component_ids" in cols else ("components" if "components" in cols else None)
     if comp_col is None:
@@ -143,7 +151,7 @@ def issue_component():
 
 @dlt.table(name="version", comment="Versions (deduped from version table).")
 def version():
-    src = spark.read.table(f"{BRONZE}.version")
+    src = spark.read.table(bronze_fqn("version"))
     cols = set(src.columns)
 
     def col(name, default=None):
@@ -162,7 +170,7 @@ def version():
 
 @dlt.table(name="project_version", comment="Bridge project <-> version.")
 def project_version():
-    src = spark.read.table(f"{BRONZE}.version")
+    src = spark.read.table(bronze_fqn("version"))
     cols = set(src.columns)
 
     def col(name, default=None):
@@ -179,7 +187,7 @@ def project_version():
     comment="Bridge issue <-> fix version. Derived from issues.fix_version_ids if present.",
 )
 def issue_version():
-    issues = spark.read.table(f"{BRONZE}.issues")
+    issues = spark.read.table(bronze_fqn("issues"))
     cols = set(issues.columns)
     ver_col = (
         "fix_version_ids" if "fix_version_ids" in cols

@@ -3,12 +3,11 @@
 import dlt
 from pyspark.sql import functions as F
 
-BRONZE = "rubjit_jira.bronze"
-
+from layer_config import bronze_fqn, pick
 
 @dlt.table(name="board", comment="Agile boards.")
 def board():
-    src = spark.read.table(f"{BRONZE}.boards")
+    src = spark.read.table(bronze_fqn("boards"))
     cols = set(src.columns)
 
     def col(name, default=None):
@@ -16,26 +15,28 @@ def board():
 
     return src.select(
         F.col("id").cast("long").alias("id"),
-        col("name").alias("name"),
-        col("type").alias("board_type"),
-        col("project_id").cast("long").alias("project_id"),
-        col("filter_id").cast("long").alias("filter_id"),
-        col("location_type").alias("location_type"),
+        pick(cols, "name").alias("name"),
+        pick(cols, "type", "board_type").alias("board_type"),
+        pick(cols, "project_id", "projectId").cast("long").alias("project_id"),
+        pick(cols, "filter_id", "filterId").cast("long").alias("filter_id"),
+        pick(cols, "location_type", "location").alias("location_type"),
     )
 
 
 @dlt.table(name="project_board", comment="Project <-> board mapping.")
 def project_board():
-    src = spark.read.table(f"{BRONZE}.project_board")
+    src = spark.read.table(bronze_fqn("project_board"))
+    cols = set(src.columns)
+
     return src.select(
-        F.col("project_id").cast("long").alias("project_id"),
-        F.col("board_id").cast("long").alias("board_id"),
+        pick(cols, "project_id", "projectId").cast("long").alias("project_id"),
+        pick(cols, "board_id", "boardId").cast("long").alias("board_id"),
     )
 
 
 @dlt.table(name="sprint", comment="Sprints.")
 def sprint():
-    src = spark.read.table(f"{BRONZE}.sprints")
+    src = spark.read.table(bronze_fqn("sprints"))
     cols = set(src.columns)
 
     def col(name, default=None):
@@ -43,19 +44,19 @@ def sprint():
 
     return src.select(
         F.col("id").cast("long").alias("id"),
-        col("board_id").cast("long").alias("board_id"),
-        col("name").alias("name"),
-        col("state").alias("state"),
-        col("start_date").cast("timestamp").alias("start_date"),
-        col("end_date").cast("timestamp").alias("end_date"),
-        col("complete_date").cast("timestamp").alias("complete_date"),
-        col("goal").alias("goal"),
+        pick(cols, "board_id", "boardId").cast("long").alias("board_id"),
+        pick(cols, "name").alias("name"),
+        pick(cols, "state").alias("state"),
+        pick(cols, "start_date", "startDate").cast("timestamp").alias("start_date"),
+        pick(cols, "end_date", "endDate").cast("timestamp").alias("end_date"),
+        pick(cols, "complete_date", "completeDate").cast("timestamp").alias("complete_date"),
+        pick(cols, "goal").alias("goal"),
     )
 
 
 @dlt.table(name="user_group", comment="Bridge user <-> group.")
 def user_group():
-    src = spark.read.table(f"{BRONZE}.user_group")
+    src = spark.read.table(bronze_fqn("user_group"))
     cols = set(src.columns)
 
     def col(name, default=None):
@@ -70,7 +71,7 @@ def user_group():
 
 @dlt.table(name="group", comment="Deduped group lookup derived from user_group.")
 def group():
-    src = spark.read.table(f"{BRONZE}.user_group")
+    src = spark.read.table(bronze_fqn("user_group"))
     cols = set(src.columns)
 
     def col(name, default=None):
@@ -88,7 +89,7 @@ def group():
 
 @dlt.table(name="application_role", comment="Application roles in Jira.")
 def application_role():
-    src = spark.read.table(f"{BRONZE}.application_roles")
+    src = spark.read.table(bronze_fqn("application_roles"))
     cols = set(src.columns)
 
     def col(name, default=None):
@@ -105,7 +106,7 @@ def application_role():
 
 @dlt.table(name="permission_scheme", comment="Permission schemes.")
 def permission_scheme():
-    src = spark.read.table(f"{BRONZE}.permission_schemes")
+    src = spark.read.table(bronze_fqn("permission_schemes"))
     return src.select(
         F.col("id").cast("long").alias("id"),
         F.col("name").alias("name"),
@@ -115,7 +116,7 @@ def permission_scheme():
 
 @dlt.table(name="security_scheme", comment="Security schemes.")
 def security_scheme():
-    src = spark.read.table(f"{BRONZE}.security_schemes")
+    src = spark.read.table(bronze_fqn("security_schemes"))
     cols = set(src.columns)
 
     def col(name, default=None):
@@ -131,7 +132,7 @@ def security_scheme():
 
 @dlt.table(name="security_level", comment="Security levels within schemes.")
 def security_level():
-    src = spark.read.table(f"{BRONZE}.security_level")
+    src = spark.read.table(bronze_fqn("security_level"))
     cols = set(src.columns)
 
     def col(name, default=None):
@@ -147,7 +148,7 @@ def security_level():
 
 @dlt.table(name="project_permission", comment="Project-level permission grants.")
 def project_permission():
-    src = spark.read.table(f"{BRONZE}.project_permissions")
+    src = spark.read.table(bronze_fqn("project_permissions"))
     cols = set(src.columns)
 
     def col(name, default=None):

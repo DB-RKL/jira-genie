@@ -1,0 +1,39 @@
+# Jira Analytics Pipeline Configuration
+# This is the ONLY file you need to edit.
+#
+# After updating values, run: ./scripts/sync_config.sh
+# Then deploy with:         databricks bundle deploy -t dev
+#
+# Prerequisites:
+# - Databricks CLI >= 1.3.0 installed and authenticated
+# - The catalog referenced below must already exist in your workspace.
+#   Schemas are created automatically during deployment.
+
+# Deployment profile — what gets deployed
+# Options:
+#   full            — Pipeline + Metrics + Dashboard + Genie
+#   with_dashboard  — Pipeline + Metrics + Dashboard
+#   with_genie      — Pipeline + Metrics + Genie
+#   with_metrics    — Pipeline + Metrics
+#   pipeline_only   — Pipeline only
+deployment_profile: "full"
+
+# SQL Warehouse ID for dashboard, Genie, and metric-view jobs
+warehouse_id: ""
+
+# Workspace user email (dashboard and Genie folder path: /Users/<email>)
+owner_email: ""
+
+# Unity Catalog and schema names per layer
+catalog: ""
+bronze_schema: "jira_bronze"
+silver_schema: "jira_silver"
+gold_schema: "jira_gold"
+metrics_schema: "jira_metrics"
+
+# Lakeflow Connect Jira connection name (Catalog Explorer → Connections)
+jira_connection_name: ""
+
+# Consumption layer display names
+dashboard_name: "Jira Analytics"
+genie_space_name: "Jira Analytics"

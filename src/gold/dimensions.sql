@@ -13,8 +13,8 @@ SELECT
   u.locale,
   u.time_zone,
   CONCAT_WS(', ', COLLECT_LIST(g.group_name)) AS groups
-FROM rubjit_jira.silver.`user` u
-LEFT JOIN rubjit_jira.silver.user_group g
+FROM ${silver_catalog}.${silver_schema}.`user` u
+LEFT JOIN ${silver_catalog}.${silver_schema}.user_group g
   ON g.account_id = u.account_id
 GROUP BY ALL;
 
@@ -35,10 +35,10 @@ SELECT
   COUNT(i.id) AS total_issues,
   COUNT_IF(i.resolved_at IS NULL) AS open_issues,
   COUNT_IF(i.resolved_at IS NOT NULL) AS resolved_issues
-FROM rubjit_jira.silver.project p
-LEFT JOIN rubjit_jira.silver.project_category pc ON pc.id = p.project_category_id
-LEFT JOIN rubjit_jira.silver.`user` ul ON ul.account_id = p.lead_id
-LEFT JOIN rubjit_jira.silver.issue i ON i.project_id = p.id
+FROM ${silver_catalog}.${silver_schema}.project p
+LEFT JOIN ${silver_catalog}.${silver_schema}.project_category pc ON pc.id = p.project_category_id
+LEFT JOIN ${silver_catalog}.${silver_schema}.`user` ul ON ul.account_id = p.lead_id
+LEFT JOIN ${silver_catalog}.${silver_schema}.issue i ON i.project_id = p.id
 GROUP BY ALL;
 
 
@@ -57,8 +57,8 @@ SELECT
     WHEN 'done' THEN 3
     ELSE 99
   END AS category_order
-FROM rubjit_jira.silver.status s
-LEFT JOIN rubjit_jira.silver.status_category sc ON sc.id = s.status_category_id;
+FROM ${silver_catalog}.${silver_schema}.status s
+LEFT JOIN ${silver_catalog}.${silver_schema}.status_category sc ON sc.id = s.status_category_id;
 
 
 CREATE OR REFRESH MATERIALIZED VIEW dim_sprint
@@ -76,8 +76,8 @@ SELECT
   b.name AS board_name,
   b.project_id,
   DATEDIFF(DAY, sp.start_date, COALESCE(sp.complete_date, sp.end_date)) AS duration_days
-FROM rubjit_jira.silver.sprint sp
-LEFT JOIN rubjit_jira.silver.board b ON b.id = sp.board_id;
+FROM ${silver_catalog}.${silver_schema}.sprint sp
+LEFT JOIN ${silver_catalog}.${silver_schema}.board b ON b.id = sp.board_id;
 
 
 CREATE OR REFRESH MATERIALIZED VIEW dim_date
@@ -87,7 +87,7 @@ WITH bounds AS (
   SELECT
     DATE_SUB(MIN(CAST(created_at AS DATE)), 730) AS start_date,
     DATE_ADD(CURRENT_DATE(), 365) AS end_date
-  FROM rubjit_jira.silver.issue
+  FROM ${silver_catalog}.${silver_schema}.issue
 ),
 dates AS (
   SELECT EXPLODE(SEQUENCE(start_date, end_date, INTERVAL 1 DAY)) AS date_key

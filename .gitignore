@@ -1,6 +1,15 @@
 # Databricks local state
 .databricks/
 
+# Customer config (copy from pipeline.example.yaml)
+config/pipeline.yaml
+config/workspace.yml
+
+# Generated artifacts (produced by scripts/sync_config.sh)
+src/metrics/metric_views.sql
+src/genie/*.geniespace.json
+dashboards/jira_analytics.lvdash.json
+
 # Packaging artifacts
 *.zip
 
@@ -15,3 +24,4 @@ venv/
 .DS_Store
 *.swp
 .idea/
+.vscode/

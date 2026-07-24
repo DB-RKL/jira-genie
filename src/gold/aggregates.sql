@@ -69,6 +69,6 @@ SELECT
   PERCENTILE_APPROX(t.duration_hours, 0.9) AS p90_hours,
   AVG(t.duration_hours) AS avg_hours
 FROM LIVE.fct_issue_transitions t
-LEFT JOIN rubjit_jira.silver.project p ON p.id = t.project_id
+LEFT JOIN ${silver_catalog}.${silver_schema}.project p ON p.id = t.project_id
 WHERE t.duration_hours IS NOT NULL
 GROUP BY ALL;
