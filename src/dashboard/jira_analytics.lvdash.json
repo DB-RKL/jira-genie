@@ -1,0 +1,2333 @@
+{
+  "datasets": [
+    {
+      "name": "ds_velocity",
+      "displayName": "Sprint velocity",
+      "queryLines": [
+        "SELECT `Sprint` AS sprint_name, `Sprint State` AS state, `Project Key` AS project_key, `Start Date` AS start_date, `Complete Date` AS complete_date, MEASURE(`Points Planned`) AS points_in_sprint, MEASURE(`Points Completed`) AS points_completed, MEASURE(`Avg Completion Ratio`) AS completion_ratio, MEASURE(`Issues Planned`) AS issues_in_sprint, MEASURE(`Issues Completed`) AS issues_completed FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_sprint_velocity GROUP BY `Sprint`, `Sprint State`, `Project Key`, `Start Date`, `Complete Date`"
+      ]
+    },
+    {
+      "name": "ds_velocity_recent",
+      "displayName": "Sprint velocity (last 12 closed)",
+      "queryLines": [
+        "SELECT `Sprint` AS sprint_name, `Sprint State` AS state, `Project Key` AS project_key, `Start Date` AS start_date, `Complete Date` AS complete_date, MEASURE(`Points Planned`) AS points_in_sprint, MEASURE(`Points Completed`) AS points_completed, MEASURE(`Avg Completion Ratio`) AS completion_ratio, MEASURE(`Issues Planned`) AS issues_in_sprint, MEASURE(`Issues Completed`) AS issues_completed FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_sprint_velocity WHERE `Sprint State` = 'closed' AND `Complete Date` IS NOT NULL GROUP BY `Sprint`, `Sprint State`, `Project Key`, `Start Date`, `Complete Date` ORDER BY `Complete Date` DESC LIMIT 12"
+      ]
+    },
+    {
+      "name": "ds_issue",
+      "displayName": "Issue fact",
+      "queryLines": [
+        "SELECT `Issue Key` AS issue_key, `Summary` AS summary, `Project Key` AS project_key, `Assignee` AS assignee_name, `Priority` AS priority, `Age (days)` AS age_days, `Status Category` AS status_category, `Issue Type` AS issue_type, `Is Resolved` AS is_resolved, `Cycle Time (days)` AS cycle_time_days, `Lead Time (days)` AS lead_time_days, `Age Bucket` AS age_bucket FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_issue"
+      ]
+    },
+    {
+      "name": "ds_issue_open",
+      "displayName": "Open issues",
+      "queryLines": [
+        "SELECT `Issue Key` AS issue_key, `Summary` AS summary, `Project Key` AS project_key, `Assignee` AS assignee_name, `Priority` AS priority, `Age (days)` AS age_days, `Status Category` AS status_category, `Issue Type` AS issue_type, `Is Resolved` AS is_resolved, `Cycle Time (days)` AS cycle_time_days, `Lead Time (days)` AS lead_time_days, `Age Bucket` AS age_bucket FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_issue WHERE NOT `Is Resolved`"
+      ]
+    },
+    {
+      "name": "ds_issue_resolved_180",
+      "displayName": "Resolved issues (last 180 days)",
+      "queryLines": [
+        "SELECT `Issue Key` AS issue_key, `Summary` AS summary, `Project Key` AS project_key, `Assignee` AS assignee_name, `Priority` AS priority, `Age (days)` AS age_days, `Status Category` AS status_category, `Issue Type` AS issue_type, `Is Resolved` AS is_resolved, `Cycle Time (days)` AS cycle_time_days, `Lead Time (days)` AS lead_time_days, `Age Bucket` AS age_bucket FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_issue WHERE `Is Resolved` AND `Resolved Date` >= CURRENT_DATE() - INTERVAL 180 DAYS"
+      ]
+    },
+    {
+      "name": "ds_project_health",
+      "displayName": "Project health",
+      "queryLines": [
+        "SELECT `Project Key` AS project_key, `Project Name` AS project_name, MEASURE(`Open Issues`) AS open_issues, MEASURE(`Open Critical`) AS open_critical, MEASURE(`Stale Open`) AS stale_open, MEASURE(`Avg Cycle Time (days)`) AS avg_cycle_time_days, MEASURE(`Resolved Issues (30d)`) AS resolved_last_30d, MEASURE(`Created Issues (30d)`) AS created_last_30d FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_project_health GROUP BY `Project Key`, `Project Name`"
+      ]
+    },
+    {
+      "name": "ds_assignee_load",
+      "displayName": "Assignee load",
+      "queryLines": [
+        "SELECT `Assignee` AS assignee_name, `Project Key` AS project_key, `Priority` AS priority, MEASURE(`Open Issues`) AS open_issues FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_assignee_load GROUP BY `Assignee`, `Project Key`, `Priority`"
+      ]
+    },
+    {
+      "name": "ds_team_prod",
+      "displayName": "Team productivity",
+      "queryLines": [
+        "SELECT `Assignee` AS assignee_name, MEASURE(`Resolved (30d)`) AS resolved_30d, MEASURE(`Resolved (90d)`) AS resolved_90d, MEASURE(`Open Now`) AS open_now, MEASURE(`Open Critical`) AS open_critical, MEASURE(`Avg Cycle Time (days)`) AS avg_cycle_time_days, MEASURE(`Avg Lead Time (days)`) AS avg_lead_time_days FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_team_productivity GROUP BY `Assignee`"
+      ]
+    },
+    {
+      "name": "ds_time_in_status",
+      "displayName": "Time in status",
+      "queryLines": [
+        "SELECT `Project Key` AS project_key, `Status` AS status_name, MEASURE(`P50 Duration (hours)`) AS p50_hours, MEASURE(`P90 Duration (hours)`) AS p90_hours, MEASURE(`Observations`) AS observations FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_time_in_status GROUP BY `Project Key`, `Status`"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "8163c556",
+      "displayName": "Jira Analytics",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "ccb8af11",
+            "queries": [
+              {
+                "name": "ds_velocity_filter_project_key",
+                "query": {
+                  "datasetName": "ds_velocity",
+                  "fields": [
+                    {
+                      "name": "project_key",
+                      "expression": "`project_key`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_velocity_recent_filter_project_key",
+                "query": {
+                  "datasetName": "ds_velocity_recent",
+                  "fields": [
+                    {
+                      "name": "project_key",
+                      "expression": "`project_key`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_issue_filter_project_key",
+                "query": {
+                  "datasetName": "ds_issue",
+                  "fields": [
+                    {
+                      "name": "project_key",
+                      "expression": "`project_key`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_issue_open_filter_project_key",
+                "query": {
+                  "datasetName": "ds_issue_open",
+                  "fields": [
+                    {
+                      "name": "project_key",
+                      "expression": "`project_key`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_issue_resolved_180_filter_project_key",
+                "query": {
+                  "datasetName": "ds_issue_resolved_180",
+                  "fields": [
+                    {
+                      "name": "project_key",
+                      "expression": "`project_key`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_project_health_filter_project_key",
+                "query": {
+                  "datasetName": "ds_project_health",
+                  "fields": [
+                    {
+                      "name": "project_key",
+                      "expression": "`project_key`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "project_key",
+                    "displayName": "Project",
+                    "queryName": "ds_velocity_filter_project_key"
+                  },
+                  {
+                    "fieldName": "project_key",
+                    "displayName": "Project",
+                    "queryName": "ds_velocity_recent_filter_project_key"
+                  },
+                  {
+                    "fieldName": "project_key",
+                    "displayName": "Project",
+                    "queryName": "ds_issue_filter_project_key"
+                  },
+                  {
+                    "fieldName": "project_key",
+                    "displayName": "Project",
+                    "queryName": "ds_issue_open_filter_project_key"
+                  },
+                  {
+                    "fieldName": "project_key",
+                    "displayName": "Project",
+                    "queryName": "ds_issue_resolved_180_filter_project_key"
+                  },
+                  {
+                    "fieldName": "project_key",
+                    "displayName": "Project",
+                    "queryName": "ds_project_health_filter_project_key"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Project"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "6d584e42",
+            "queries": [
+              {
+                "name": "ds_team_prod_filter_assignee_name",
+                "query": {
+                  "datasetName": "ds_team_prod",
+                  "fields": [
+                    {
+                      "name": "assignee_name",
+                      "expression": "`assignee_name`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_assignee_load_filter_assignee_name",
+                "query": {
+                  "datasetName": "ds_assignee_load",
+                  "fields": [
+                    {
+                      "name": "assignee_name",
+                      "expression": "`assignee_name`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "assignee_name",
+                    "displayName": "Assignee",
+                    "queryName": "ds_team_prod_filter_assignee_name"
+                  },
+                  {
+                    "fieldName": "assignee_name",
+                    "displayName": "Assignee",
+                    "queryName": "ds_assignee_load_filter_assignee_name"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Assignee"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "a08408e9",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_velocity",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "COUNT_IF(`state` = 'active')"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value",
+                  "displayName": "Active sprints",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "auto",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Active sprints"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "190f1f10",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_velocity_recent",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "AVG(completion_ratio)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value",
+                  "displayName": "Avg completion (last 12)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "auto",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Avg completion (last 12)"
+              }
+            }
+          },
+          "position": {
+            "x": 1,
+            "y": 2,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "340dc9f2",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_velocity",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "SUM(CASE WHEN complete_date >= CURRENT_DATE() - INTERVAL 30 DAYS THEN points_completed END)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value",
+                  "displayName": "Points completed (30d)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "auto",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Points completed (30d)"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "f4170c4e",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_velocity_recent",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "SUM(points_in_sprint - points_completed)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value",
+                  "displayName": "Carryover points (last 12)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "auto",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Carryover points (last 12)"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "50c7b052",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_velocity_recent",
+                  "fields": [
+                    {
+                      "name": "sprint_name",
+                      "expression": "`sprint_name`"
+                    },
+                    {
+                      "name": "points",
+                      "expression": "SUM(`points_in_sprint`)"
+                    },
+                    {
+                      "name": "metric",
+                      "expression": "'Planned'"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "sprint_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "sprint_name"
+                },
+                "y": {
+                  "fieldName": "points",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "points"
+                },
+                "label": {
+                  "show": true
+                },
+                "color": {
+                  "fieldName": "metric",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "metric"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Points in sprint vs completed"
+              },
+              "mark": {
+                "colors": [
+                  "#1B5E20",
+                  "#00A972",
+                  "#FFAB00",
+                  "#FF3621",
+                  "#8BCAE7",
+                  "#AB4057",
+                  "#919191"
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 3,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "e3103fff",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_velocity_recent",
+                  "fields": [
+                    {
+                      "name": "sprint_name",
+                      "expression": "`sprint_name`"
+                    },
+                    {
+                      "name": "ratio",
+                      "expression": "AVG(`completion_ratio`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "sprint_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "sprint_name"
+                },
+                "y": {
+                  "fieldName": "ratio",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "ratio"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Completion ratio trend"
+              },
+              "mark": {
+                "colors": [
+                  "#1B5E20"
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 4,
+            "width": 3,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "49486c78",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_velocity",
+                  "fields": [
+                    {
+                      "name": "sprint_name",
+                      "expression": "`sprint_name`"
+                    },
+                    {
+                      "name": "state",
+                      "expression": "`state`"
+                    },
+                    {
+                      "name": "start_date",
+                      "expression": "`start_date`"
+                    },
+                    {
+                      "name": "complete_date",
+                      "expression": "`complete_date`"
+                    },
+                    {
+                      "name": "points_in_sprint",
+                      "expression": "`points_in_sprint`"
+                    },
+                    {
+                      "name": "points_completed",
+                      "expression": "`points_completed`"
+                    },
+                    {
+                      "name": "completion_ratio",
+                      "expression": "`completion_ratio`"
+                    },
+                    {
+                      "name": "issues_in_sprint",
+                      "expression": "`issues_in_sprint`"
+                    },
+                    {
+                      "name": "issues_completed",
+                      "expression": "`issues_completed`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "sprint_name",
+                    "type": "string",
+                    "displayAs": "string",
+                    "title": "Sprint",
+                    "displayName": "Sprint"
+                  },
+                  {
+                    "fieldName": "state",
+                    "type": "string",
+                    "displayAs": "string",
+                    "title": "State",
+                    "displayName": "State"
+                  },
+                  {
+                    "fieldName": "start_date",
+                    "type": "datetime",
+                    "displayAs": "datetime",
+                    "title": "Start",
+                    "displayName": "Start"
+                  },
+                  {
+                    "fieldName": "complete_date",
+                    "type": "datetime",
+                    "displayAs": "datetime",
+                    "title": "Complete",
+                    "displayName": "Complete"
+                  },
+                  {
+                    "fieldName": "points_in_sprint",
+                    "type": "float",
+                    "displayAs": "number",
+                    "title": "Planned pts",
+                    "displayName": "Planned pts",
+                    "numberFormat": "0,0.0",
+                    "alignContent": "right"
+                  },
+                  {
+                    "fieldName": "points_completed",
+                    "type": "float",
+                    "displayAs": "number",
+                    "title": "Done pts",
+                    "displayName": "Done pts",
+                    "numberFormat": "0,0.0",
+                    "alignContent": "right"
+                  },
+                  {
+                    "fieldName": "completion_ratio",
+                    "type": "float",
+                    "displayAs": "number",
+                    "title": "Completion %",
+                    "displayName": "Completion %",
+                    "numberFormat": "0.0%",
+                    "alignContent": "right"
+                  },
+                  {
+                    "fieldName": "issues_in_sprint",
+                    "type": "integer",
+                    "displayAs": "number",
+                    "title": "Issues",
+                    "displayName": "Issues",
+                    "numberFormat": "0",
+                    "alignContent": "right"
+                  },
+                  {
+                    "fieldName": "issues_completed",
+                    "type": "integer",
+                    "displayAs": "number",
+                    "title": "Done",
+                    "displayName": "Done",
+                    "numberFormat": "0",
+                    "alignContent": "right"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Sprint outcomes"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "0e462ee5",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_issue_resolved_180",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "PERCENTILE_APPROX(cycle_time_days, 0.5)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value",
+                  "displayName": "Median cycle (days)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "auto",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Median cycle (days)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 14,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "f5e7fc4f",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_issue_resolved_180",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "PERCENTILE_APPROX(lead_time_days, 0.5)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value",
+                  "displayName": "Median lead (days)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "auto",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Median lead (days)"
+              }
+            }
+          },
+          "position": {
+            "x": 1,
+            "y": 14,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "834348b0",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_issue_open",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "COUNT_IF(age_days > 30)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value",
+                  "displayName": "Open >30d",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "auto",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Open >30d"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 14,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "2869c0f6",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_issue_open",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "COUNT_IF(age_days > 30 AND priority IN ('Highest','Critical','Blocker'))"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value",
+                  "displayName": "Stale critical",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "auto",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Stale critical"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 14,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "83fb67f2",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_issue_resolved_180",
+                  "fields": [
+                    {
+                      "name": "cycle_bucket",
+                      "expression": "CASE WHEN cycle_time_days < 1 THEN '< 1d' WHEN cycle_time_days < 3 THEN '1-3d' WHEN cycle_time_days < 7 THEN '3-7d' WHEN cycle_time_days < 14 THEN '7-14d' WHEN cycle_time_days < 30 THEN '14-30d' WHEN cycle_time_days < 60 THEN '30-60d' WHEN cycle_time_days < 90 THEN '60-90d' ELSE '90d+' END"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "COUNT(*)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "histogram",
+              "encodings": {
+                "x": {
+                  "fieldName": "cycle_bucket",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "natural-order"
+                    }
+                  },
+                  "displayName": "Cycle bucket"
+                },
+                "y": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Issues"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Cycle time distribution (last 180d resolved)"
+              },
+              "mark": {
+                "colors": [
+                  "#1B5E20"
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 16,
+            "width": 3,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "2189f267",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_issue_open",
+                  "fields": [
+                    {
+                      "name": "age_bucket",
+                      "expression": "`age_bucket`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "COUNT(*)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "age_bucket",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "natural-order"
+                    }
+                  },
+                  "displayName": "age_bucket"
+                },
+                "y": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "count"
+                },
+                "label": {
+                  "show": true
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Open issues by age bucket"
+              },
+              "mark": {
+                "colors": [
+                  "#1B5E20",
+                  "#00A972",
+                  "#FFAB00",
+                  "#FF3621",
+                  "#8BCAE7",
+                  "#AB4057",
+                  "#919191"
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 16,
+            "width": 3,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "6bbf1b52",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_time_in_status",
+                  "fields": [
+                    {
+                      "name": "project_key",
+                      "expression": "`project_key`"
+                    },
+                    {
+                      "name": "status_name",
+                      "expression": "`status_name`"
+                    },
+                    {
+                      "name": "p50_hours",
+                      "expression": "`p50_hours`"
+                    },
+                    {
+                      "name": "p90_hours",
+                      "expression": "`p90_hours`"
+                    },
+                    {
+                      "name": "observations",
+                      "expression": "`observations`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "project_key",
+                    "type": "string",
+                    "displayAs": "string",
+                    "title": "Project",
+                    "displayName": "Project"
+                  },
+                  {
+                    "fieldName": "status_name",
+                    "type": "string",
+                    "displayAs": "string",
+                    "title": "Status",
+                    "displayName": "Status"
+                  },
+                  {
+                    "fieldName": "p50_hours",
+                    "type": "float",
+                    "displayAs": "number",
+                    "title": "P50 (h)",
+                    "displayName": "P50 (h)",
+                    "numberFormat": "0.0",
+                    "alignContent": "right"
+                  },
+                  {
+                    "fieldName": "p90_hours",
+                    "type": "float",
+                    "displayAs": "number",
+                    "title": "P90 (h)",
+                    "displayName": "P90 (h)",
+                    "numberFormat": "0.0",
+                    "alignContent": "right"
+                  },
+                  {
+                    "fieldName": "observations",
+                    "type": "integer",
+                    "displayAs": "number",
+                    "title": "Observations",
+                    "displayName": "Observations",
+                    "numberFormat": "0,0",
+                    "alignContent": "right"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Time in status (p50/p90 hours)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 20,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "80097d54",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_issue_open",
+                  "fields": [
+                    {
+                      "name": "issue_key",
+                      "expression": "`issue_key`"
+                    },
+                    {
+                      "name": "project_key",
+                      "expression": "`project_key`"
+                    },
+                    {
+                      "name": "summary",
+                      "expression": "`summary`"
+                    },
+                    {
+                      "name": "assignee_name",
+                      "expression": "`assignee_name`"
+                    },
+                    {
+                      "name": "priority",
+                      "expression": "`priority`"
+                    },
+                    {
+                      "name": "age_days",
+                      "expression": "`age_days`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "issue_key",
+                    "type": "string",
+                    "displayAs": "string",
+                    "title": "Key",
+                    "displayName": "Key"
+                  },
+                  {
+                    "fieldName": "project_key",
+                    "type": "string",
+                    "displayAs": "string",
+                    "title": "Project",
+                    "displayName": "Project"
+                  },
+                  {
+                    "fieldName": "summary",
+                    "type": "string",
+                    "displayAs": "string",
+                    "title": "Summary",
+                    "displayName": "Summary"
+                  },
+                  {
+                    "fieldName": "assignee_name",
+                    "type": "string",
+                    "displayAs": "string",
+                    "title": "Assignee",
+                    "displayName": "Assignee"
+                  },
+                  {
+                    "fieldName": "priority",
+                    "type": "string",
+                    "displayAs": "string",
+                    "title": "Priority",
+                    "displayName": "Priority"
+                  },
+                  {
+                    "fieldName": "age_days",
+                    "type": "integer",
+                    "displayAs": "number",
+                    "title": "Age (days)",
+                    "displayName": "Age (days)",
+                    "numberFormat": "0",
+                    "alignContent": "right"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Top 20 oldest open issues"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 20,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "e81f89a4",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_project_health",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "SUM(open_issues)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value",
+                  "displayName": "Total open",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "auto",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total open"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 26,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "60fa4fb7",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_project_health",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "COUNT_IF(stale_open > 0)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value",
+                  "displayName": "Projects w/ stale",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "auto",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Projects w/ stale"
+              }
+            }
+          },
+          "position": {
+            "x": 1,
+            "y": 26,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "26264bfd",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_project_health",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "AVG(avg_cycle_time_days)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value",
+                  "displayName": "Portfolio avg cycle (d)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "auto",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Portfolio avg cycle (d)"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 26,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "08132567",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_project_health",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "SUM(resolved_last_30d)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value",
+                  "displayName": "Resolved (30d)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "auto",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Resolved (30d)"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 26,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "ff7c8e1c",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_issue",
+                  "fields": [
+                    {
+                      "name": "project_key",
+                      "expression": "`project_key`"
+                    },
+                    {
+                      "name": "status_category",
+                      "expression": "`status_category`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "COUNT(*)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "heatmap",
+              "encodings": {
+                "x": {
+                  "fieldName": "project_key",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "project_key"
+                },
+                "y": {
+                  "fieldName": "status_category",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "status_category"
+                },
+                "color": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "count"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Project x status category"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 28,
+            "width": 4,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "16cd80aa",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_issue",
+                  "fields": [
+                    {
+                      "name": "count",
+                      "expression": "COUNT(*)"
+                    },
+                    {
+                      "name": "issue_type",
+                      "expression": "`issue_type`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "count"
+                },
+                "color": {
+                  "fieldName": "issue_type",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "issue_type"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Issue type mix"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 28,
+            "width": 2,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "54ce3cad",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_issue_open",
+                  "fields": [
+                    {
+                      "name": "project_key",
+                      "expression": "`project_key`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "COUNT(*)"
+                    },
+                    {
+                      "name": "priority",
+                      "expression": "`priority`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "project_key",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "project_key"
+                },
+                "y": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative",
+                    "stack": "stack"
+                  },
+                  "displayName": "count"
+                },
+                "label": {
+                  "show": true
+                },
+                "color": {
+                  "fieldName": "priority",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "priority"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Open issues by priority (top projects)"
+              },
+              "mark": {
+                "colors": [
+                  "#1B5E20",
+                  "#00A972",
+                  "#FFAB00",
+                  "#FF3621",
+                  "#8BCAE7",
+                  "#AB4057",
+                  "#919191"
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 32,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "50f24763",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_project_health",
+                  "fields": [
+                    {
+                      "name": "project_key",
+                      "expression": "`project_key`"
+                    },
+                    {
+                      "name": "project_name",
+                      "expression": "`project_name`"
+                    },
+                    {
+                      "name": "open_issues",
+                      "expression": "`open_issues`"
+                    },
+                    {
+                      "name": "open_critical",
+                      "expression": "`open_critical`"
+                    },
+                    {
+                      "name": "stale_open",
+                      "expression": "`stale_open`"
+                    },
+                    {
+                      "name": "avg_cycle_time_days",
+                      "expression": "`avg_cycle_time_days`"
+                    },
+                    {
+                      "name": "resolved_last_30d",
+                      "expression": "`resolved_last_30d`"
+                    },
+                    {
+                      "name": "created_last_30d",
+                      "expression": "`created_last_30d`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "project_key",
+                    "type": "string",
+                    "displayAs": "string",
+                    "title": "Project",
+                    "displayName": "Project"
+                  },
+                  {
+                    "fieldName": "project_name",
+                    "type": "string",
+                    "displayAs": "string",
+                    "title": "Name",
+                    "displayName": "Name"
+                  },
+                  {
+                    "fieldName": "open_issues",
+                    "type": "integer",
+                    "displayAs": "number",
+                    "title": "Open",
+                    "displayName": "Open",
+                    "numberFormat": "0,0",
+                    "alignContent": "right"
+                  },
+                  {
+                    "fieldName": "open_critical",
+                    "type": "integer",
+                    "displayAs": "number",
+                    "title": "Open critical",
+                    "displayName": "Open critical",
+                    "numberFormat": "0,0",
+                    "alignContent": "right"
+                  },
+                  {
+                    "fieldName": "stale_open",
+                    "type": "integer",
+                    "displayAs": "number",
+                    "title": "Stale (>30d)",
+                    "displayName": "Stale (>30d)",
+                    "numberFormat": "0,0",
+                    "alignContent": "right"
+                  },
+                  {
+                    "fieldName": "avg_cycle_time_days",
+                    "type": "float",
+                    "displayAs": "number",
+                    "title": "Avg cycle (d)",
+                    "displayName": "Avg cycle (d)",
+                    "numberFormat": "0.0",
+                    "alignContent": "right"
+                  },
+                  {
+                    "fieldName": "resolved_last_30d",
+                    "type": "integer",
+                    "displayAs": "number",
+                    "title": "Resolved 30d",
+                    "displayName": "Resolved 30d",
+                    "numberFormat": "0,0",
+                    "alignContent": "right"
+                  },
+                  {
+                    "fieldName": "created_last_30d",
+                    "type": "integer",
+                    "displayAs": "number",
+                    "title": "Created 30d",
+                    "displayName": "Created 30d",
+                    "numberFormat": "0,0",
+                    "alignContent": "right"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Project scorecard"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 36,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "03010fd5",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_team_prod",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "COUNT_IF(resolved_30d > 0 OR open_now > 0)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value",
+                  "displayName": "Active contributors (30d)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "auto",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Active contributors (30d)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 42,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "32ed7092",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_team_prod",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "MAX(resolved_30d)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value",
+                  "displayName": "Top resolver count",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "auto",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Top resolver count"
+              }
+            }
+          },
+          "position": {
+            "x": 1,
+            "y": 42,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "a54e0433",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_team_prod",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "AVG(avg_cycle_time_days)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value",
+                  "displayName": "Team avg cycle (d)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "auto",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Team avg cycle (d)"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 42,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "edc424a0",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_team_prod",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "AVG(open_now)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value",
+                  "displayName": "Avg open load",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "auto",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Avg open load"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 42,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "9f02413f",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_team_prod",
+                  "fields": [
+                    {
+                      "name": "assignee_name",
+                      "expression": "`assignee_name`"
+                    },
+                    {
+                      "name": "resolved_30d",
+                      "expression": "MAX(`resolved_30d`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "assignee_name",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "assignee_name"
+                },
+                "y": {
+                  "fieldName": "resolved_30d",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "resolved_30d"
+                },
+                "label": {
+                  "show": true
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Top 20 resolvers (30d)"
+              },
+              "mark": {
+                "colors": [
+                  "#1B5E20",
+                  "#00A972",
+                  "#FFAB00",
+                  "#FF3621",
+                  "#8BCAE7",
+                  "#AB4057",
+                  "#919191"
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 44,
+            "width": 3,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "7336469f",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_team_prod",
+                  "fields": [
+                    {
+                      "name": "cycle",
+                      "expression": "`avg_cycle_time_days`"
+                    },
+                    {
+                      "name": "resolved",
+                      "expression": "`resolved_90d`"
+                    },
+                    {
+                      "name": "assignee",
+                      "expression": "`assignee_name`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "scatter",
+              "encodings": {
+                "x": {
+                  "fieldName": "cycle",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Avg cycle (days)"
+                },
+                "y": {
+                  "fieldName": "resolved",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Resolved (90d)"
+                },
+                "color": {
+                  "fieldName": "assignee",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "assignee"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Cycle time vs resolved (90d)"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 44,
+            "width": 3,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "57431731",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_assignee_load",
+                  "fields": [
+                    {
+                      "name": "assignee_name",
+                      "expression": "`assignee_name`"
+                    },
+                    {
+                      "name": "open_issues",
+                      "expression": "SUM(`open_issues`)"
+                    },
+                    {
+                      "name": "priority",
+                      "expression": "`priority`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "assignee_name",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "assignee_name"
+                },
+                "y": {
+                  "fieldName": "open_issues",
+                  "scale": {
+                    "type": "quantitative",
+                    "stack": "stack"
+                  },
+                  "displayName": "open_issues"
+                },
+                "label": {
+                  "show": true
+                },
+                "color": {
+                  "fieldName": "priority",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "priority"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Open load by assignee and priority"
+              },
+              "mark": {
+                "colors": [
+                  "#1B5E20",
+                  "#00A972",
+                  "#FFAB00",
+                  "#FF3621",
+                  "#8BCAE7",
+                  "#AB4057",
+                  "#919191"
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 48,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "1bf54139",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "ds_team_prod",
+                  "fields": [
+                    {
+                      "name": "assignee_name",
+                      "expression": "`assignee_name`"
+                    },
+                    {
+                      "name": "resolved_30d",
+                      "expression": "`resolved_30d`"
+                    },
+                    {
+                      "name": "resolved_90d",
+                      "expression": "`resolved_90d`"
+                    },
+                    {
+                      "name": "open_now",
+                      "expression": "`open_now`"
+                    },
+                    {
+                      "name": "open_critical",
+                      "expression": "`open_critical`"
+                    },
+                    {
+                      "name": "avg_cycle_time_days",
+                      "expression": "`avg_cycle_time_days`"
+                    },
+                    {
+                      "name": "avg_lead_time_days",
+                      "expression": "`avg_lead_time_days`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "assignee_name",
+                    "type": "string",
+                    "displayAs": "string",
+                    "title": "Assignee",
+                    "displayName": "Assignee"
+                  },
+                  {
+                    "fieldName": "resolved_30d",
+                    "type": "integer",
+                    "displayAs": "number",
+                    "title": "Resolved 30d",
+                    "displayName": "Resolved 30d",
+                    "numberFormat": "0,0",
+                    "alignContent": "right"
+                  },
+                  {
+                    "fieldName": "resolved_90d",
+                    "type": "integer",
+                    "displayAs": "number",
+                    "title": "Resolved 90d",
+                    "displayName": "Resolved 90d",
+                    "numberFormat": "0,0",
+                    "alignContent": "right"
+                  },
+                  {
+                    "fieldName": "open_now",
+                    "type": "integer",
+                    "displayAs": "number",
+                    "title": "Open now",
+                    "displayName": "Open now",
+                    "numberFormat": "0,0",
+                    "alignContent": "right"
+                  },
+                  {
+                    "fieldName": "open_critical",
+                    "type": "integer",
+                    "displayAs": "number",
+                    "title": "Open critical",
+                    "displayName": "Open critical",
+                    "numberFormat": "0,0",
+                    "alignContent": "right"
+                  },
+                  {
+                    "fieldName": "avg_cycle_time_days",
+                    "type": "float",
+                    "displayAs": "number",
+                    "title": "Avg cycle (d)",
+                    "displayName": "Avg cycle (d)",
+                    "numberFormat": "0.0",
+                    "alignContent": "right"
+                  },
+                  {
+                    "fieldName": "avg_lead_time_days",
+                    "type": "float",
+                    "displayAs": "number",
+                    "title": "Avg lead (d)",
+                    "displayName": "Avg lead (d)",
+                    "numberFormat": "0.0",
+                    "alignContent": "right"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Assignee scorecard"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 52,
+            "width": 6,
+            "height": 6
+          }
+        }
+      ]
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}

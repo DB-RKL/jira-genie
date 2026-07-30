@@ -5,4 +5,3 @@ resources:
       description: "Natural-language Q&A over governed Jira delivery metric views"
       warehouse_id: ${var.warehouse_id}
       file_path: ../../src/genie/jira_analytics.geniespace.json
-      parent_path: /Users/${var.owner_email}

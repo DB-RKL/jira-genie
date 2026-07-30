@@ -44,6 +44,9 @@ Python DLT pipelines in `src/silver/`:
 - `issue_history.py` — field history, worklogs, watchers
 - `relationships.py` — links, sprints, epics, components, versions
 - `lookups.py` — boards, sprints, groups, permission schemes
+- `apply_comments.py` — applies Unity Catalog table and column comments to bronze and silver
+
+Table and column comments are defined in `src/silver/bronze_comments.py` and `src/silver/silver_comments.py`, then applied on each silver pipeline run.
 
 See [data-model.md](data-model.md) for the full silver ER diagram.
 
@@ -67,6 +70,19 @@ See [data-model.md](data-model.md) for the full gold star schema diagram.
 
 Defined in [`src/metrics/metric_views.sql.tmpl`](../src/metrics/metric_views.sql.tmpl), generated at sync time into `src/metrics/metric_views.sql`. Created by the `build_metrics` task in `jira_analytics_refresh`.
 
+Metric views model star-schema **relationships** via YAML `joins` blocks (visible in Catalog Explorer under **Data model → Relationships**):
+
+| Metric view | Fact / aggregate source | Dimension joins |
+|-------------|-------------------------|-----------------|
+| `metric_issue` | `fct_issue` | `dim_project`, `dim_user` (assignee, reporter), `dim_status`, `dim_sprint` |
+| `metric_sprint_velocity` | `fct_sprint_velocity` | `dim_project`, `dim_sprint` |
+| `metric_issue_transitions` | `fct_issue_transitions` | `dim_project`, `dim_status` |
+| `metric_worklog` | `fct_worklog` | `dim_project`, `dim_user` (author) |
+| `metric_project_health` | `agg_project_health` | `dim_project` |
+| `metric_assignee_load` | `agg_assignee_load` | `dim_user`, `dim_project` |
+| `metric_team_productivity` | `agg_team_productivity` | `dim_user` |
+| `metric_time_in_status` | `agg_time_in_status` | `dim_project`, `dim_status` |
+
 ## Bundle Structure
 
 ```
@@ -82,9 +98,9 @@ dashboards/                   ← generated Lakeview JSON
 
 ## Orchestration
 
-`jira_analytics_refresh` job runs four tasks sequentially:
+`jira_analytics_refresh` job runs four tasks sequentially (profiles with metrics add a fifth):
 
 1. `ingest_bronze` — Lakeflow Connect pipeline
-2. `build_silver` — Silver DLT pipeline
-3. `build_gold` — Gold DLT pipeline
-4. `build_metrics` — SQL task executing generated metric views
+2. `build_silver` — Silver DLT pipeline (applies bronze/silver UC comments)
+3. `build_gold` — Gold DLT pipeline (applies gold UC comments)
+4. `build_metrics` — SQL task executing generated metric views (`with_metrics`, `with_dashboard`, `with_genie`, `full` only)

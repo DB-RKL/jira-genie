@@ -14,6 +14,37 @@ AS $$
 version: 1.1
 source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.fct_issue
 filter: issue_id IS NOT NULL
+joins:
+  - name: project_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_project
+    on: source.project_id = project_dim.project_id
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
+  - name: assignee_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_user
+    on: source.assignee_id = assignee_dim.account_id
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
+  - name: reporter_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_user
+    on: source.reporter_id = reporter_dim.account_id
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
+  - name: status_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_status
+    on: source.status_id = status_dim.status_id
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
+  - name: sprint_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_sprint
+    on: source.current_sprint_id = sprint_dim.sprint_id
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
 fields:
   - name: Issue Key
     expr: issue_key
@@ -25,6 +56,13 @@ fields:
     synonyms: ['project', 'proj']
   - name: Project Name
     expr: project_name
+  - name: Project Lead
+    expr: project_dim.lead_name
+    synonyms: ['project owner', 'lead']
+  - name: Project Category
+    expr: project_dim.category_name
+  - name: Project Type
+    expr: project_dim.project_type_key
   - name: Issue Type
     expr: issue_type
     synonyms: ['type']
@@ -33,6 +71,8 @@ fields:
   - name: Status Category
     expr: status_category
     synonyms: ['category', 'To Do In Progress Done']
+  - name: Status Category Order
+    expr: status_dim.category_order
   - name: Priority
     expr: priority
   - name: Resolution
@@ -40,9 +80,17 @@ fields:
   - name: Assignee
     expr: assignee_name
     synonyms: ['owner', 'engineer']
+  - name: Assignee Email
+    expr: assignee_dim.email
+  - name: Reporter Email
+    expr: reporter_dim.email
   - name: Current Sprint
     expr: current_sprint_name
     synonyms: ['sprint']
+  - name: Sprint State
+    expr: sprint_dim.state
+  - name: Sprint Board
+    expr: sprint_dim.board_name
   - name: Age Bucket
     expr: age_bucket
   - name: Age (days)
@@ -98,6 +146,19 @@ COMMENT 'Sprint delivery semantics: planned vs completed points, completion rati
 AS $$
 version: 1.1
 source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.fct_sprint_velocity
+joins:
+  - name: project_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_project
+    on: source.project_id = project_dim.project_id
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
+  - name: sprint_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_sprint
+    on: source.sprint_id = sprint_dim.sprint_id
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
 fields:
   - name: Sprint
     expr: sprint_name
@@ -107,6 +168,12 @@ fields:
   - name: Project Key
     expr: project_key
     synonyms: ['project']
+  - name: Project Name
+    expr: project_dim.project_name
+  - name: Project Lead
+    expr: project_dim.lead_name
+  - name: Sprint Board
+    expr: sprint_dim.board_name
   - name: Start Date
     expr: start_date
   - name: Complete Date
@@ -140,20 +207,31 @@ AS $$
 version: 1.1
 source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.fct_issue_transitions
 joins:
-  - name: project
+  - name: project_dim
     source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_project
-    on: source.project_id = project.project_id
+    on: source.project_id = project_dim.project_id
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
+  - name: to_status_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_status
+    on: TRY_CAST(source.to_status_id AS BIGINT) = to_status_dim.status_id
+    cardinality: many_to_one
     rely:
       at_most_one_match: true
 fields:
   - name: Project Key
-    expr: project.project_key
+    expr: project_dim.project_key
     synonyms: ['project']
+  - name: Project Name
+    expr: project_dim.project_name
   - name: From Status
     expr: from_status
   - name: To Status
     expr: to_status
     synonyms: ['status']
+  - name: To Status Category
+    expr: to_status_dim.category_name
   - name: To Category
     expr: to_category_key
 measures:
@@ -178,15 +256,32 @@ COMMENT 'Effort semantics: logged hours by project and contributor.'
 AS $$
 version: 1.1
 source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.fct_worklog
+joins:
+  - name: project_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_project
+    on: source.project_id = project_dim.project_id
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
+  - name: author_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_user
+    on: source.author_id = author_dim.account_id
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
 fields:
   - name: Project Key
     expr: project_key
     synonyms: ['project']
   - name: Project Name
     expr: project_name
+  - name: Project Lead
+    expr: project_dim.lead_name
   - name: Author
     expr: author_name
     synonyms: ['contributor', 'engineer']
+  - name: Author Email
+    expr: author_dim.email
   - name: Work Date
     expr: work_date
   - name: Work Month
@@ -210,12 +305,23 @@ COMMENT 'Portfolio semantics: per-project health KPIs for steering committees.'
 AS $$
 version: 1.1
 source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.agg_project_health
+joins:
+  - name: project_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_project
+    on: source.project_id = project_dim.project_id
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
 fields:
   - name: Project Key
     expr: project_key
     synonyms: ['project']
   - name: Project Name
     expr: project_name
+  - name: Project Lead
+    expr: project_dim.lead_name
+  - name: Project Category
+    expr: project_dim.category_name
 measures:
   - name: Total Issues
     expr: SUM(total_issues)
@@ -249,12 +355,29 @@ COMMENT 'Assignee load semantics: open issues by priority and age bucket.'
 AS $$
 version: 1.1
 source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.agg_assignee_load
+joins:
+  - name: assignee_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_user
+    on: source.assignee_id = assignee_dim.account_id
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
+  - name: project_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_project
+    on: source.project_id = project_dim.project_id
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
 fields:
   - name: Assignee
     expr: assignee_name
     synonyms: ['owner', 'engineer']
+  - name: Assignee Email
+    expr: assignee_dim.email
   - name: Project Key
     expr: project_key
+  - name: Project Name
+    expr: project_dim.project_name
   - name: Priority
     expr: priority
   - name: Age Bucket
@@ -276,10 +399,19 @@ COMMENT 'Team productivity semantics: resolver throughput and cycle time.'
 AS $$
 version: 1.1
 source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.agg_team_productivity
+joins:
+  - name: assignee_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_user
+    on: source.assignee_id = assignee_dim.account_id
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
 fields:
   - name: Assignee
     expr: assignee_name
     synonyms: ['contributor', 'engineer']
+  - name: Assignee Email
+    expr: assignee_dim.email
 measures:
   - name: Resolved (30d)
     expr: SUM(resolved_30d)
@@ -307,13 +439,30 @@ COMMENT 'Time-in-status semantics: p50/p90 duration per project and status.'
 AS $$
 version: 1.1
 source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.agg_time_in_status
+joins:
+  - name: project_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_project
+    on: source.project_id = project_dim.project_id
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
+  - name: status_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_status
+    on: source.status_name = status_dim.status_name
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
 fields:
   - name: Project Key
     expr: project_key
+  - name: Project Name
+    expr: project_dim.project_name
   - name: Status
     expr: status_name
     synonyms: ['status name']
   - name: Status Category
+    expr: status_dim.category_name
+  - name: Status Category Key
     expr: status_category_key
 measures:
   - name: Observations

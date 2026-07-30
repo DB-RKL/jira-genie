@@ -4,7 +4,7 @@
 
 | Job | Command | Purpose |
 |-----|---------|---------|
-| Full refresh | `databricks bundle run jira_analytics_refresh -t dev` | Ingest → silver → gold → metrics |
+| Full refresh | `databricks bundle run jira_analytics_refresh -t dev` | Ingest → silver → gold → metrics (profile-dependent) |
 | Metrics only | `databricks bundle run jira_build_metrics -t dev` | Rebuild metric views over existing gold |
 
 The refresh job schedule is paused by default. Enable it in the Databricks Jobs UI or edit `resources/*/orchestration.yml`.
@@ -16,6 +16,8 @@ Navigate to **AI/BI → Dashboards** and open your configured dashboard name. Th
 ## Using Genie
 
 Open **Genie** and select the Jira Analytics space. Sample questions and example SQL are pre-loaded. Genie queries the same eight metric views as the dashboard.
+
+Re-deploying the bundle with the same `genie_space_name` updates the existing Genie space in place (Databricks Asset Bundles manages the resource by bundle key `jira_analytics_genie`). You do not need a separate create-or-update script.
 
 ## Metric Views
 
@@ -57,9 +59,24 @@ Re-run `./scripts/sync_config.sh` — the build script sorts tables, columns, an
 
 ### Dashboard shows no data
 
-1. Confirm metric views exist: `SHOW TABLES IN <catalog>.<metrics_schema>`
-2. Re-run `jira_analytics_refresh` or `jira_build_metrics`
-3. Re-deploy consumption layer after metrics exist
+The dashboard reads Unity Catalog **metric views**, not gold tables directly.
+
+1. **Run the refresh job** so gold tables and metric views are populated:
+   ```bash
+   databricks bundle run jira_analytics_refresh -t dev -p <your-profile>
+   ```
+
+2. **Confirm metric views return data:**
+   ```sql
+   SELECT MEASURE(`Open Issues`) FROM <catalog>.<metrics_schema>.metric_issue;
+   SELECT MEASURE(`Points Completed`) FROM <catalog>.<metrics_schema>.metric_sprint_velocity;
+   ```
+
+3. **Check dev schema prefixes:** run `./scripts/sync_config.sh -t dev -p <your-profile>` before deploy so generated SQL uses `dev_<user>_jira_*` schemas.
+
+4. **Sprint widgets empty but other widgets work:** sprint velocity depends on `sprint_issue` data derived from Jira issue sprint fields. Confirm your Jira instance populates sprint membership in the Connect `issues` table.
+
+5. **Draft vs published dashboard:** `bundle deploy` updates the draft. Open the dashboard in AI/BI and publish if viewers still see an older version.
 
 ## Regenerating Artifacts
 

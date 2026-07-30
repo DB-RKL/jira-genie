@@ -40,6 +40,14 @@ def silver_fqn(table: str) -> str:
     return f"{cat}.{sch}.{table}"
 
 
+def bronze_catalog_schema() -> tuple[str, str]:
+    return _conf("bronze_catalog", "catalog"), _conf("bronze_schema")
+
+
+def silver_catalog_schema() -> tuple[str, str]:
+    return _conf("silver_catalog", "catalog"), _conf("silver_schema")
+
+
 def pick(cols: set[str], *names: str, default=None) -> Column:
     """Return the first present column, supporting Lakeflow camelCase and legacy snake_case."""
     for name in names:

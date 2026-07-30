@@ -20,6 +20,14 @@ resources:
             path: ../../src/silver/relationships.py
         - file:
             path: ../../src/silver/lookups.py
+        - file:
+            path: ../../src/silver/bronze_comments.py
+        - file:
+            path: ../../src/silver/silver_comments.py
+        - file:
+            path: ../../src/silver/comment_apply.py
+        - file:
+            path: ../../src/silver/apply_comments.py
       configuration:
         catalog: ${var.catalog}
         bronze_catalog: ${var.catalog}

@@ -32,6 +32,8 @@ targets:
   dev:
     default: true
     mode: development
+    run_as:
+      user_name: ${var.owner_email}
     variables:
       catalog: ""
       bronze_schema: "jira_bronze"
@@ -46,6 +48,8 @@ targets:
 
   prod:
     mode: production
+    run_as:
+      user_name: ${var.owner_email}
     variables:
       catalog: ""
       bronze_schema: "jira_bronze"

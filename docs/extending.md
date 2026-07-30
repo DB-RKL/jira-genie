@@ -4,8 +4,9 @@
 
 1. Add the view definition to [`src/metrics/metric_views.sql.tmpl`](../src/metrics/metric_views.sql.tmpl)
 2. Register it in `METRIC_VIEWS` and `COLUMN_CONFIGS` in [`scripts/build_assets.py`](../scripts/build_assets.py)
-3. Add sample questions / example SQL in the same file for Genie
-4. Run `./scripts/sync_config.sh` and redeploy
+3. Add field/measure comments in [`src/metrics/metric_view_comments.py`](../src/metrics/metric_view_comments.py)
+4. Add sample questions / example SQL in `build_assets.py` for Genie
+5. Run `./scripts/sync_config.sh` and redeploy
 
 ```sql
 -- Example: new view in metric_views.sql.tmpl
@@ -16,12 +17,12 @@ AS SELECT ...
 
 ## Adding Dashboard Widgets
 
-Edit [`scripts/build_dashboard.py`](../scripts/build_dashboard.py):
+The checked-in dashboard template lives at [`src/dashboard/jira_analytics.lvdash.json`](../src/dashboard/jira_analytics.lvdash.json) with `{dashboard_catalog}` and `{dashboard_schema}` placeholders.
 
-1. Add a dataset with a `MEASURE()` query against your metric view
-2. Add a widget helper call (counter, bar, table, etc.)
-3. Place it in the `all_items` layout list
-4. Run `./scripts/sync_config.sh` to regenerate the dashboard JSON
+1. Edit [`scripts/build_dashboard.py`](../scripts/build_dashboard.py) — add datasets and widgets
+2. Regenerate the template: `python scripts/build_assets.py --regenerate-dashboard`
+3. Run `./scripts/sync_config.sh` to patch `dashboards/jira_analytics.lvdash.json` for deploy
+4. Redeploy with `databricks bundle deploy -t dev -p <profile>`
 
 ## Adding Silver Tables
 
@@ -35,7 +36,8 @@ Edit [`scripts/build_dashboard.py`](../scripts/build_dashboard.py):
 1. Add a SQL file in `src/gold/`
 2. Register it in `resources/*/gold_pipeline.yml` under `libraries`
 3. Use `${silver_catalog}.${silver_schema}` placeholders for silver references
-4. Optionally expose via a new metric view for dashboard/Genie consumption
+4. Add table/column comments in [`src/gold/gold_comments.py`](../src/gold/gold_comments.py)
+5. Optionally expose via a new metric view for dashboard/Genie consumption
 
 ## Customizing Genie Instructions
 

@@ -30,15 +30,31 @@ git clone https://github.com/DB-RKL/jira-analytics.git && cd jira-analytics
 cp config/pipeline.example.yaml config/pipeline.yaml
 # Edit config/pipeline.yaml with your catalog, warehouse, connection, and email
 
-# 2. Sync and deploy
-./scripts/sync_config.sh
-databricks bundle deploy -t dev
+# 2. Sync, validate, and deploy (use -p for dev so schema prefixes resolve correctly)
+./scripts/sync_config.sh -t dev -p <your-profile>
+databricks bundle validate -t dev -p <your-profile>
+databricks bundle deploy -t dev -p <your-profile>
 
 # 3. Run the refresh job (ingest → silver → gold → metric views)
-databricks bundle run jira_analytics_refresh -t dev
+databricks bundle run jira_analytics_refresh -t dev -p <your-profile>
 ```
 
 Open **AI/BI → Dashboards** for the Lakeview dashboard and **Genie** for natural-language Q&A.
+
+## Before you deploy
+
+Read these expectations up front so the first run matches what you see in docs and demos.
+
+| Topic | What to expect |
+|-------|----------------|
+| **Lakeflow Connect Jira** | Preview connector; OAuth U2M only. You need a working Jira connection and at least one successful bronze ingestion before silver runs. |
+| **Local CLI required** | Run `./scripts/sync_config.sh` on your machine before every `bundle validate` / `deploy`. It patches `databricks.yml`, generates metric SQL and Genie JSON, and prepares the dashboard from the checked-in template. |
+| **Dev schema prefixes** | In `dev` mode, schemas are prefixed with `dev_<user>_` (e.g. `dev_jane_jira_silver`). Always pass `-p <profile>` to `sync_config.sh` so prefixes resolve from your bundle summary. |
+| **Sprint analytics** | Sprint velocity widgets need sprint membership on issues (`issues.sprint_ids` from Connect). Without it, sprint charts may be empty even when other KPIs look fine. |
+| **Dashboard publish** | The bundle deploys a Lakeview dashboard in **draft** state. Open it in the UI and **Publish** when you are ready to share. |
+| **Profiles** | `pipeline_only` runs ingest → silver → gold only. Add metrics, dashboard, or Genie via [deployment profiles](docs/deployment-profiles.md). |
+
+Full checklist: [prerequisites](docs/prerequisites.md) · [deployment guide](docs/deployment-guide.md) · [post-deployment](docs/post-deployment.md).
 
 ## Documentation
 

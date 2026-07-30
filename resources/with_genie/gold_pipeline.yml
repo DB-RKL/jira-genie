@@ -22,6 +22,14 @@ resources:
             path: ../../src/gold/fct_worklog.sql
         - file:
             path: ../../src/gold/aggregates.sql
+        - file:
+            path: ../../src/silver/layer_config.py
+        - file:
+            path: ../../src/silver/comment_apply.py
+        - file:
+            path: ../../src/gold/gold_comments.py
+        - file:
+            path: ../../src/gold/apply_gold_comments.py
       configuration:
         catalog: ${var.catalog}
         silver_catalog: ${var.catalog}

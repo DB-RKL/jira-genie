@@ -43,22 +43,25 @@ genie_space_name: "Jira Analytics"
 
 ## Sync Workflow
 
-After editing `pipeline.yaml`, always run sync before deploy:
+After editing `pipeline.yaml`, always run sync before deploy. For dev targets, pass your CLI profile:
 
 ```bash
-./scripts/sync_config.sh
+./scripts/sync_config.sh -t dev -p <your-profile>
 ```
 
 This script:
 
 1. Validates required fields
 2. Updates `databricks.yml` with your values and selected deployment profile
-3. Generates `src/metrics/metric_views.sql`, Genie space JSON, and dashboard JSON
+3. Resolves dev-mode schema prefixes via `bundle summary` (dev targets)
+4. Patches `dashboards/jira_analytics.lvdash.json` from the checked-in template
+5. Generates `src/metrics/metric_views.sql` and Genie space JSON
 
-Then deploy:
+Then validate and deploy:
 
 ```bash
-databricks bundle deploy -t dev
+databricks bundle validate -t dev -p <your-profile>
+databricks bundle deploy -t dev -p <your-profile>
 ```
 
 ## Interactive Configuration

@@ -1,11 +1,10 @@
 """Generate the Lakeview dashboard JSON for Jira analytics (semantic layer).
 
-Datasets query Unity Catalog metric views with MEASURE(). Catalog/schema are
-injected at deploy time via dataset_catalog / dataset_schema in dashboard.yml.
+Datasets query Unity Catalog metric views with MEASURE(). The checked-in template
+at src/dashboard/jira_analytics.lvdash.json uses {dashboard_catalog} and
+{dashboard_schema} placeholders; sync_config.sh patches dashboards/jira_analytics.lvdash.json.
 
-Run:  python scripts/build_dashboard.py
-      python scripts/build_assets.py   (also builds metric SQL + Genie space)
-Output: dashboards/jira_analytics.lvdash.json (single-page overview)
+Regenerate template:  python scripts/build_assets.py --regenerate-dashboard
 """
 
 from __future__ import annotations
@@ -16,7 +15,7 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_OUTPUT = ROOT / "dashboards" / "jira_analytics.lvdash.json"
+DEFAULT_OUTPUT = ROOT / "src" / "dashboard" / "jira_analytics.lvdash.json"
 
 COLOR_PRIMARY = "#1B5E20"
 PALETTE = ["#1B5E20", "#00A972", "#FFAB00", "#FF3621", "#8BCAE7", "#AB4057", "#919191"]
@@ -32,11 +31,20 @@ def hid(label: str = "") -> str:
     return hashlib.sha256(seed.encode()).hexdigest()[:8]
 
 
-def build_dashboard(output_path: Path | None = None) -> Path:
-    """Build dashboard JSON using unqualified metric view names."""
+def build_dashboard(
+    output_path: Path | None = None,
+    metrics_catalog: str | None = None,
+    metrics_schema: str | None = None,
+) -> Path:
+    """Build dashboard JSON with fully qualified metric view references."""
     global _id_counter
     _id_counter = 0
     output_path = output_path or DEFAULT_OUTPUT
+    metrics_catalog = metrics_catalog or "catalog"
+    metrics_schema = metrics_schema or "metrics"
+
+    def mv(view: str) -> str:
+        return f"`{metrics_catalog}`.`{metrics_schema}`.{view}"
 
     datasets: list[dict] = []
 
@@ -55,7 +63,7 @@ def build_dashboard(output_path: Path | None = None) -> Path:
             "MEASURE(`Avg Completion Ratio`) AS completion_ratio, "
             "MEASURE(`Issues Planned`) AS issues_in_sprint, "
             "MEASURE(`Issues Completed`) AS issues_completed "
-            "FROM metric_sprint_velocity "
+            f"FROM {mv('metric_sprint_velocity')} "
             "GROUP BY `Sprint`, `Sprint State`, `Project Key`, `Start Date`, `Complete Date`"
         ),
         "Sprint velocity",
@@ -71,7 +79,7 @@ def build_dashboard(output_path: Path | None = None) -> Path:
             "MEASURE(`Avg Completion Ratio`) AS completion_ratio, "
             "MEASURE(`Issues Planned`) AS issues_in_sprint, "
             "MEASURE(`Issues Completed`) AS issues_completed "
-            "FROM metric_sprint_velocity "
+            f"FROM {mv('metric_sprint_velocity')} "
             "WHERE `Sprint State` = 'closed' AND `Complete Date` IS NOT NULL "
             "GROUP BY `Sprint`, `Sprint State`, `Project Key`, `Start Date`, `Complete Date` "
             "ORDER BY `Complete Date` DESC LIMIT 12"
@@ -87,18 +95,18 @@ def build_dashboard(output_path: Path | None = None) -> Path:
     )
     DS_ISSUE = add_dataset(
         "ds_issue",
-        f"SELECT {issue_dims} FROM metric_issue",
+        f"SELECT {issue_dims} FROM {mv('metric_issue')}",
         "Issue fact",
     )
     DS_ISSUE_OPEN = add_dataset(
         "ds_issue_open",
-        f"SELECT {issue_dims} FROM metric_issue WHERE NOT `Is Resolved`",
+        f"SELECT {issue_dims} FROM {mv('metric_issue')} WHERE NOT `Is Resolved`",
         "Open issues",
     )
     DS_ISSUE_RESOLVED_180 = add_dataset(
         "ds_issue_resolved_180",
         (
-            f"SELECT {issue_dims} FROM metric_issue "
+            f"SELECT {issue_dims} FROM {mv('metric_issue')} "
             "WHERE `Is Resolved` AND `Resolved Date` >= CURRENT_DATE() - INTERVAL 180 DAYS"
         ),
         "Resolved issues (last 180 days)",
@@ -113,7 +121,7 @@ def build_dashboard(output_path: Path | None = None) -> Path:
             "MEASURE(`Avg Cycle Time (days)`) AS avg_cycle_time_days, "
             "MEASURE(`Resolved Issues (30d)`) AS resolved_last_30d, "
             "MEASURE(`Created Issues (30d)`) AS created_last_30d "
-            "FROM metric_project_health "
+            f"FROM {mv('metric_project_health')} "
             "GROUP BY `Project Key`, `Project Name`"
         ),
         "Project health",
@@ -123,7 +131,7 @@ def build_dashboard(output_path: Path | None = None) -> Path:
         (
             "SELECT `Assignee` AS assignee_name, `Project Key` AS project_key, "
             "`Priority` AS priority, MEASURE(`Open Issues`) AS open_issues "
-            "FROM metric_assignee_load "
+            f"FROM {mv('metric_assignee_load')} "
             "GROUP BY `Assignee`, `Project Key`, `Priority`"
         ),
         "Assignee load",
@@ -138,7 +146,7 @@ def build_dashboard(output_path: Path | None = None) -> Path:
             "MEASURE(`Open Critical`) AS open_critical, "
             "MEASURE(`Avg Cycle Time (days)`) AS avg_cycle_time_days, "
             "MEASURE(`Avg Lead Time (days)`) AS avg_lead_time_days "
-            "FROM metric_team_productivity GROUP BY `Assignee`"
+            f"FROM {mv('metric_team_productivity')} GROUP BY `Assignee`"
         ),
         "Team productivity",
     )
@@ -149,7 +157,7 @@ def build_dashboard(output_path: Path | None = None) -> Path:
             "MEASURE(`P50 Duration (hours)`) AS p50_hours, "
             "MEASURE(`P90 Duration (hours)`) AS p90_hours, "
             "MEASURE(`Observations`) AS observations "
-            "FROM metric_time_in_status GROUP BY `Project Key`, `Status`"
+            f"FROM {mv('metric_time_in_status')} GROUP BY `Project Key`, `Status`"
         ),
         "Time in status",
     )
@@ -505,4 +513,10 @@ def build_dashboard(output_path: Path | None = None) -> Path:
 
 
 if __name__ == "__main__":
-    build_dashboard()
+    import sys
+
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from read_pipeline_config import layer_config  # noqa: E402
+
+    cfg = layer_config()
+    build_dashboard(metrics_catalog=cfg["metrics_catalog"], metrics_schema=cfg["metrics_schema"])

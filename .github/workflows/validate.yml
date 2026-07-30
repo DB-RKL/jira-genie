@@ -28,7 +28,7 @@ jobs:
           sed -i 's/jira_connection_name: ""/jira_connection_name: "test_jira"/' config/pipeline.yaml
 
       - name: Sync config and build assets
-        run: ./scripts/sync_config.sh
+        run: ./scripts/sync_config.sh -t prod
 
       - name: Verify Python scripts compile
-        run: python3 -m py_compile scripts/*.py src/silver/*.py
+        run: python3 -m py_compile scripts/*.py src/silver/*.py src/gold/*.py src/metrics/metric_view_comments.py

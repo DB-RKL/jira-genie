@@ -32,9 +32,9 @@ See [architecture.md](architecture.md) and [data-model.md](data-model.md) for fu
 cp config/pipeline.example.yaml config/pipeline.yaml
 # Edit config/pipeline.yaml
 
-./scripts/sync_config.sh
-databricks bundle deploy -t dev
-databricks bundle run jira_analytics_refresh -t dev
+./scripts/sync_config.sh -t dev -p <your-profile>
+databricks bundle deploy -t dev -p <your-profile>
+databricks bundle run jira_analytics_refresh -t dev -p <your-profile>
 ```
 
 See the [deployment guide](deployment-guide.md) for detailed instructions.

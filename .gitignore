@@ -23,5 +23,6 @@ venv/
 # OS / editor
 .DS_Store
 *.swp
+*.bak
 .idea/
 .vscode/
