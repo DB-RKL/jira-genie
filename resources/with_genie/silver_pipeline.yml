@@ -26,8 +26,6 @@ resources:
             path: ../../src/silver/silver_comments.py
         - file:
             path: ../../src/silver/comment_apply.py
-        - file:
-            path: ../../src/silver/apply_comments.py
       configuration:
         catalog: ${var.catalog}
         bronze_catalog: ${var.catalog}

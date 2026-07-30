@@ -28,8 +28,6 @@ resources:
             path: ../../src/silver/comment_apply.py
         - file:
             path: ../../src/gold/gold_comments.py
-        - file:
-            path: ../../src/gold/apply_gold_comments.py
       configuration:
         catalog: ${var.catalog}
         silver_catalog: ${var.catalog}
