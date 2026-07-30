@@ -2,6 +2,12 @@ bundle:
   name: jira-analytics
   engine: direct
 
+sync:
+  include:
+    - src/metrics/metric_views.sql
+    - dashboards/jira_analytics.lvdash.json
+    - src/genie/*.geniespace.json
+
 variables:
   catalog:
     description: Unity Catalog for all layers (must exist)
@@ -59,5 +65,3 @@ targets:
       jira_connection_name: ""
       warehouse_id: ""
       owner_email: ""
-      dashboard_name: "Jira Analytics"
-      genie_space_name: "Jira Analytics"

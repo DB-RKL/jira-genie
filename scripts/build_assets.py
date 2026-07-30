@@ -420,7 +420,6 @@ def render_metric_views(
         .replace("{{METRICS_CATALOG}}", metrics_catalog)
         .replace("{{METRICS_SCHEMA}}", metrics_schema)
     )
-    text = _inject_metric_column_comments(text)
     out_path.write_text(text)
     print(f"Wrote {out_path}")
     return out_path
