@@ -4,63 +4,63 @@
       "name": "ds_velocity",
       "displayName": "Sprint velocity",
       "queryLines": [
-        "SELECT `Sprint` AS sprint_name, `Sprint State` AS state, `Project Key` AS project_key, `Start Date` AS start_date, `Complete Date` AS complete_date, MEASURE(`Points Planned`) AS points_in_sprint, MEASURE(`Points Completed`) AS points_completed, MEASURE(`Avg Completion Ratio`) AS completion_ratio, MEASURE(`Issues Planned`) AS issues_in_sprint, MEASURE(`Issues Completed`) AS issues_completed FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_sprint_velocity GROUP BY `Sprint`, `Sprint State`, `Project Key`, `Start Date`, `Complete Date`"
+        "SELECT `Sprint` AS sprint_name, `Sprint State` AS state, `Project Key` AS project_key, `Start Date` AS start_date, `Complete Date` AS complete_date, MEASURE(`Points Planned`) AS points_in_sprint, MEASURE(`Points Completed`) AS points_completed, MEASURE(`Avg Completion Ratio`) AS completion_ratio, MEASURE(`Issues Planned`) AS issues_in_sprint, MEASURE(`Issues Completed`) AS issues_completed FROM metric_sprint_velocity GROUP BY `Sprint`, `Sprint State`, `Project Key`, `Start Date`, `Complete Date`"
       ]
     },
     {
       "name": "ds_velocity_recent",
       "displayName": "Sprint velocity (last 12 closed)",
       "queryLines": [
-        "SELECT `Sprint` AS sprint_name, `Sprint State` AS state, `Project Key` AS project_key, `Start Date` AS start_date, `Complete Date` AS complete_date, MEASURE(`Points Planned`) AS points_in_sprint, MEASURE(`Points Completed`) AS points_completed, MEASURE(`Avg Completion Ratio`) AS completion_ratio, MEASURE(`Issues Planned`) AS issues_in_sprint, MEASURE(`Issues Completed`) AS issues_completed FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_sprint_velocity WHERE `Sprint State` = 'closed' AND `Complete Date` IS NOT NULL GROUP BY `Sprint`, `Sprint State`, `Project Key`, `Start Date`, `Complete Date` ORDER BY `Complete Date` DESC LIMIT 12"
+        "SELECT `Sprint` AS sprint_name, `Sprint State` AS state, `Project Key` AS project_key, `Start Date` AS start_date, `Complete Date` AS complete_date, MEASURE(`Points Planned`) AS points_in_sprint, MEASURE(`Points Completed`) AS points_completed, MEASURE(`Avg Completion Ratio`) AS completion_ratio, MEASURE(`Issues Planned`) AS issues_in_sprint, MEASURE(`Issues Completed`) AS issues_completed FROM metric_sprint_velocity WHERE `Sprint State` = 'closed' AND `Complete Date` IS NOT NULL GROUP BY `Sprint`, `Sprint State`, `Project Key`, `Start Date`, `Complete Date` ORDER BY `Complete Date` DESC LIMIT 12"
       ]
     },
     {
       "name": "ds_issue",
       "displayName": "Issue fact",
       "queryLines": [
-        "SELECT `Issue Key` AS issue_key, `Summary` AS summary, `Project Key` AS project_key, `Assignee` AS assignee_name, `Priority` AS priority, `Age (days)` AS age_days, `Status Category` AS status_category, `Issue Type` AS issue_type, `Is Resolved` AS is_resolved, `Cycle Time (days)` AS cycle_time_days, `Lead Time (days)` AS lead_time_days, `Age Bucket` AS age_bucket FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_issue"
+        "SELECT `Issue Key` AS issue_key, `Summary` AS summary, `Project Key` AS project_key, `Assignee` AS assignee_name, `Priority` AS priority, `Age (days)` AS age_days, `Status Category` AS status_category, `Issue Type` AS issue_type, `Is Resolved` AS is_resolved, `Cycle Time (days)` AS cycle_time_days, `Lead Time (days)` AS lead_time_days, `Age Bucket` AS age_bucket FROM metric_issue"
       ]
     },
     {
       "name": "ds_issue_open",
       "displayName": "Open issues",
       "queryLines": [
-        "SELECT `Issue Key` AS issue_key, `Summary` AS summary, `Project Key` AS project_key, `Assignee` AS assignee_name, `Priority` AS priority, `Age (days)` AS age_days, `Status Category` AS status_category, `Issue Type` AS issue_type, `Is Resolved` AS is_resolved, `Cycle Time (days)` AS cycle_time_days, `Lead Time (days)` AS lead_time_days, `Age Bucket` AS age_bucket FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_issue WHERE NOT `Is Resolved`"
+        "SELECT `Issue Key` AS issue_key, `Summary` AS summary, `Project Key` AS project_key, `Assignee` AS assignee_name, `Priority` AS priority, `Age (days)` AS age_days, `Status Category` AS status_category, `Issue Type` AS issue_type, `Is Resolved` AS is_resolved, `Cycle Time (days)` AS cycle_time_days, `Lead Time (days)` AS lead_time_days, `Age Bucket` AS age_bucket FROM metric_issue WHERE NOT `Is Resolved`"
       ]
     },
     {
       "name": "ds_issue_resolved_180",
       "displayName": "Resolved issues (last 180 days)",
       "queryLines": [
-        "SELECT `Issue Key` AS issue_key, `Summary` AS summary, `Project Key` AS project_key, `Assignee` AS assignee_name, `Priority` AS priority, `Age (days)` AS age_days, `Status Category` AS status_category, `Issue Type` AS issue_type, `Is Resolved` AS is_resolved, `Cycle Time (days)` AS cycle_time_days, `Lead Time (days)` AS lead_time_days, `Age Bucket` AS age_bucket FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_issue WHERE `Is Resolved` AND `Resolved Date` >= CURRENT_DATE() - INTERVAL 180 DAYS"
+        "SELECT `Issue Key` AS issue_key, `Summary` AS summary, `Project Key` AS project_key, `Assignee` AS assignee_name, `Priority` AS priority, `Age (days)` AS age_days, `Status Category` AS status_category, `Issue Type` AS issue_type, `Is Resolved` AS is_resolved, `Cycle Time (days)` AS cycle_time_days, `Lead Time (days)` AS lead_time_days, `Age Bucket` AS age_bucket FROM metric_issue WHERE `Is Resolved` AND `Resolved Date` >= CURRENT_DATE() - INTERVAL 180 DAYS"
       ]
     },
     {
       "name": "ds_project_health",
       "displayName": "Project health",
       "queryLines": [
-        "SELECT `Project Key` AS project_key, `Project Name` AS project_name, MEASURE(`Open Issues`) AS open_issues, MEASURE(`Open Critical`) AS open_critical, MEASURE(`Stale Open`) AS stale_open, MEASURE(`Avg Cycle Time (days)`) AS avg_cycle_time_days, MEASURE(`Resolved Issues (30d)`) AS resolved_last_30d, MEASURE(`Created Issues (30d)`) AS created_last_30d FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_project_health GROUP BY `Project Key`, `Project Name`"
+        "SELECT `Project Key` AS project_key, `Project Name` AS project_name, MEASURE(`Open Issues`) AS open_issues, MEASURE(`Open Critical`) AS open_critical, MEASURE(`Stale Open`) AS stale_open, MEASURE(`Avg Cycle Time (days)`) AS avg_cycle_time_days, MEASURE(`Resolved Issues (30d)`) AS resolved_last_30d, MEASURE(`Created Issues (30d)`) AS created_last_30d FROM metric_project_health GROUP BY `Project Key`, `Project Name`"
       ]
     },
     {
       "name": "ds_assignee_load",
       "displayName": "Assignee load",
       "queryLines": [
-        "SELECT `Assignee` AS assignee_name, `Project Key` AS project_key, `Priority` AS priority, MEASURE(`Open Issues`) AS open_issues FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_assignee_load GROUP BY `Assignee`, `Project Key`, `Priority`"
+        "SELECT `Assignee` AS assignee_name, `Project Key` AS project_key, `Priority` AS priority, MEASURE(`Open Issues`) AS open_issues FROM metric_assignee_load GROUP BY `Assignee`, `Project Key`, `Priority`"
       ]
     },
     {
       "name": "ds_team_prod",
       "displayName": "Team productivity",
       "queryLines": [
-        "SELECT `Assignee` AS assignee_name, MEASURE(`Resolved (30d)`) AS resolved_30d, MEASURE(`Resolved (90d)`) AS resolved_90d, MEASURE(`Open Now`) AS open_now, MEASURE(`Open Critical`) AS open_critical, MEASURE(`Avg Cycle Time (days)`) AS avg_cycle_time_days, MEASURE(`Avg Lead Time (days)`) AS avg_lead_time_days FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_team_productivity GROUP BY `Assignee`"
+        "SELECT `Assignee` AS assignee_name, MEASURE(`Resolved (30d)`) AS resolved_30d, MEASURE(`Resolved (90d)`) AS resolved_90d, MEASURE(`Open Now`) AS open_now, MEASURE(`Open Critical`) AS open_critical, MEASURE(`Avg Cycle Time (days)`) AS avg_cycle_time_days, MEASURE(`Avg Lead Time (days)`) AS avg_lead_time_days FROM metric_team_productivity GROUP BY `Assignee`"
       ]
     },
     {
       "name": "ds_time_in_status",
       "displayName": "Time in status",
       "queryLines": [
-        "SELECT `Project Key` AS project_key, `Status` AS status_name, MEASURE(`P50 Duration (hours)`) AS p50_hours, MEASURE(`P90 Duration (hours)`) AS p90_hours, MEASURE(`Observations`) AS observations FROM `{dashboard_catalog}`.`{dashboard_schema}`.metric_time_in_status GROUP BY `Project Key`, `Status`"
+        "SELECT `Project Key` AS project_key, `Status` AS status_name, MEASURE(`P50 Duration (hours)`) AS p50_hours, MEASURE(`P90 Duration (hours)`) AS p90_hours, MEASURE(`Observations`) AS observations FROM metric_time_in_status GROUP BY `Project Key`, `Status`"
       ]
     }
   ],

@@ -44,7 +44,7 @@ def build_dashboard(
     metrics_schema = metrics_schema or "metrics"
 
     def mv(view: str) -> str:
-        return f"`{metrics_catalog}`.`{metrics_schema}`.{view}"
+        return view
 
     datasets: list[dict] = []
 

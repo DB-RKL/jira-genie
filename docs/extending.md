@@ -17,7 +17,7 @@ AS SELECT ...
 
 ## Adding Dashboard Widgets
 
-The checked-in dashboard template lives at [`src/dashboard/jira_analytics.lvdash.json`](../src/dashboard/jira_analytics.lvdash.json) with `{dashboard_catalog}` and `{dashboard_schema}` placeholders.
+The checked-in dashboard template lives at [`src/dashboard/jira_analytics.lvdash.json`](../src/dashboard/jira_analytics.lvdash.json) with **unqualified** metric view names (e.g. `FROM metric_issue`). `sync_config.sh` copies it to `dashboards/jira_analytics.lvdash.json`; catalog and schema are injected at deploy time via `dataset_catalog` / `dataset_schema` in the bundle dashboard resource.
 
 1. Edit [`scripts/build_dashboard.py`](../scripts/build_dashboard.py) — add datasets and widgets
 2. Regenerate the template: `python scripts/build_assets.py --regenerate-dashboard`

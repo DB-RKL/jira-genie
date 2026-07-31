@@ -54,7 +54,7 @@ This script:
 1. Validates required fields
 2. Updates `databricks.yml` with your values and selected deployment profile
 3. Resolves dev-mode schema prefixes via `bundle summary` (dev targets)
-4. Patches `dashboards/jira_analytics.lvdash.json` from the checked-in template
+4. Copies `dashboards/jira_analytics.lvdash.json` from the checked-in template (unqualified metric view names; catalog/schema set by the bundle dashboard resource)
 5. Generates `src/metrics/metric_views.sql` and Genie space JSON
 
 Then validate and deploy:

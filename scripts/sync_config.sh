@@ -159,12 +159,7 @@ if [[ ! -f "$DASHBOARD_TEMPLATE" ]]; then
   exit 1
 fi
 cp "$DASHBOARD_TEMPLATE" "$DASHBOARD_OUT"
-sed -i.bak \
-  -e "s/{dashboard_catalog}/${catalog}/g" \
-  -e "s/{dashboard_schema}/${METRICS_SCHEMA}/g" \
-  "$DASHBOARD_OUT"
-rm -f "$DASHBOARD_OUT.bak"
-echo "Patched dashboard: $DASHBOARD_OUT"
+echo "Prepared dashboard: $DASHBOARD_OUT (catalog/schema from bundle dataset_catalog/dataset_schema)"
 
 # --- 5. Generate metric SQL, Genie JSON, gold comment SQL ---
 BUILD_ARGS=(--catalog "$catalog" --gold-schema "$GOLD_SCHEMA" --metrics-schema "$METRICS_SCHEMA")
