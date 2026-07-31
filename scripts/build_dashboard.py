@@ -44,7 +44,7 @@ def build_dashboard(
     metrics_schema = metrics_schema or "metrics"
 
     def mv(view: str) -> str:
-        return view
+        return f"`{metrics_catalog}`.`{metrics_schema}`.{view}"
 
     datasets: list[dict] = []
 
@@ -466,15 +466,15 @@ def build_dashboard(
         ], "Assignee scorecard"), 0, 10, 6, 6),
     ]
 
-    section_heights = [12, 12, 16, 16]
-    sections = [p1_items, p2_items, p3_items, p4_items]
+    section_heights = [16, 12, 12, 16]
+    sections = [p3_items, p2_items, p1_items, p4_items]
     y_offset = 2  # room for global filters
     all_items = [
         (filter_widget(
             "filter-multi-select",
             "project_key",
             "Project",
-            [DS_VELOCITY, DS_VELOCITY_RECENT, DS_ISSUE, DS_ISSUE_OPEN, DS_ISSUE_RESOLVED_180, DS_PROJECT_HEALTH],
+            [DS_ISSUE, DS_ISSUE_OPEN, DS_PROJECT_HEALTH],
         ), 0, 0, 3, 2),
         (filter_widget(
             "filter-multi-select",

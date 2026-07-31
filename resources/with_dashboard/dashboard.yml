@@ -5,6 +5,4 @@ resources:
       file_path: ../../dashboards/jira_analytics.lvdash.json
       warehouse_id: ${var.warehouse_id}
       embed_credentials: true
-      dataset_catalog: ${var.catalog}
-      dataset_schema: ${resources.schemas.metrics.name}
       parent_path: /Users/${var.owner_email}
