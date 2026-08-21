@@ -60,7 +60,7 @@ def issue():
             icol("parent_id").cast("string").alias("parent_id"),
             icol("created", "created_at").cast("timestamp").alias("created_at"),
             icol("updated", "updated_at").cast("timestamp").alias("updated_at"),
-            icol("resolutionDate", "resolved", "resolved_at").cast("timestamp").alias("resolved_at"),
+            icol("resolutionDate", "resolutiondate", "resolved", "resolved_at").cast("timestamp").alias("resolved_at"),
             icol("due_date").cast("date").alias("due_date"),
             icol("environment").alias("environment"),
             icol("labels").alias("labels"),
