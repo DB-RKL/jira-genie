@@ -38,7 +38,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follo
 - Curated Genie space with glossary, sample questions, and example SQL
 - Config-driven deployment via `config/pipeline.yaml` and `scripts/sync_config.sh`
 - Five deployment profiles: `full`, `with_dashboard`, `with_genie`, `with_metrics`, `pipeline_only`
-- Orchestrated refresh job (`jira_analytics_refresh`)
+- Orchestrated refresh job (`jira_analytics_setup`)
 - Customer documentation in `docs/`
 
 ### Design Notes

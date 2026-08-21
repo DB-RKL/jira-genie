@@ -1,8 +1,9 @@
 resources:
   jobs:
-    jira_analytics_refresh:
-      name: jira_analytics_refresh
-      description: "Refresh: Lakeflow Connect ingestion -> silver DLT -> gold DLT -> metric views"
+    jira_analytics_setup:
+      name: "jira-analytics-setup"
+      tags:
+        workload: jira-analytics
       max_concurrent_runs: 1
       schedule:
         quartz_cron_expression: "0 0 6 * * ?"
@@ -12,12 +13,9 @@ resources:
         on_failure:
           - ${var.owner_email}
       tasks:
-        - task_key: ingest_bronze
-          pipeline_task:
-            pipeline_id: ${resources.pipelines.jira_ingestion_pipeline.id}
+        # Ingestion (Lakeflow Connect) is decoupled and runs on its own schedule;
+        # this job transforms bronze -> silver -> gold and refreshes metric views.
         - task_key: build_silver
-          depends_on:
-            - task_key: ingest_bronze
           pipeline_task:
             pipeline_id: ${resources.pipelines.jira_silver_pipeline.id}
         - task_key: build_gold

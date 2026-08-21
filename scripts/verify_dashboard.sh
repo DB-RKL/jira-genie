@@ -178,7 +178,7 @@ if state != "SUCCEEDED":
     print(f"FAIL: metric query {state}: {err.get('message', err)}")
     sys.exit(1)
 if not data or data[0][0] in (None, "", "0"):
-    print(f"WARN: metric query succeeded but returned {data!r} — run jira_analytics_refresh")
+    print(f"WARN: metric query succeeded but returned {data!r} — run jira_analytics_setup")
 else:
     print(f"OK:   metric_project_health total_open = {data[0][0]}")
 print("OK:   widget Total open SQL =", widget.get("data"))
@@ -207,4 +207,4 @@ echo ""
 echo "If widgets still look empty in the browser:"
 echo "  1. Run ./scripts/push_dashboard.sh -t $TARGET ${CLI_PROFILE:+-p $CLI_PROFILE}"
 echo "  2. Hard-refresh the published dashboard URL (not draft)"
-echo "  3. Run: databricks bundle run jira_analytics_refresh -t $TARGET ${CLI_PROFILE:+-p $CLI_PROFILE}"
+echo "  3. Run: databricks bundle run jira_analytics_setup -t $TARGET ${CLI_PROFILE:+-p $CLI_PROFILE}"

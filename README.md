@@ -36,7 +36,7 @@ databricks bundle validate -t dev -p <your-profile>
 ./scripts/deploy.sh -t dev -p <your-profile>   # bundle deploy + auto dashboard widget wiring
 
 # 3. Run the refresh job (ingest → silver → gold → metric views)
-databricks bundle run jira_analytics_refresh -t dev -p <your-profile>
+databricks bundle run jira_analytics_setup -t dev -p <your-profile>
 ```
 
 Open **AI/BI → Dashboards** for the Lakeview dashboard and **Genie** for natural-language Q&A.

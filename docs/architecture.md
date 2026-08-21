@@ -80,7 +80,7 @@ See [data-model.md](data-model.md) for the full gold star schema diagram.
 
 ## Metric Views
 
-Defined in [`src/metrics/metric_views.sql.tmpl`](../src/metrics/metric_views.sql.tmpl), generated at sync time into `src/metrics/metric_views.sql`. Created by the `build_metrics` task in `jira_analytics_refresh`.
+Defined in [`src/metrics/metric_views.sql.tmpl`](../src/metrics/metric_views.sql.tmpl), generated at sync time into `src/metrics/metric_views.sql`. Created by the `build_metrics` task in `jira_analytics_setup`.
 
 Metric views model star-schema **relationships** via YAML `joins` blocks (visible in Catalog Explorer under **Data model → Relationships**):
 
@@ -111,7 +111,7 @@ dashboards/                   ← generated Lakeview JSON
 
 ## Orchestration
 
-`jira_analytics_refresh` job runs four tasks sequentially (profiles with metrics add a fifth):
+`jira_analytics_setup` job runs four tasks sequentially (profiles with metrics add a fifth):
 
 1. `ingest_bronze` — Lakeflow Connect pipeline
 2. `build_silver` — Silver DLT pipeline (applies bronze/silver UC comments)

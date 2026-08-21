@@ -34,7 +34,7 @@ cp config/pipeline.example.yaml config/pipeline.yaml
 
 ./scripts/sync_config.sh -t dev -p <your-profile>
 ./scripts/deploy.sh -t dev -p <your-profile>
-databricks bundle run jira_analytics_refresh -t dev -p <your-profile>
+databricks bundle run jira_analytics_setup -t dev -p <your-profile>
 ```
 
 See the [deployment guide](deployment-guide.md) for detailed instructions.

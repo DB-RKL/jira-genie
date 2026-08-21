@@ -93,16 +93,10 @@ The prod pipelines use `pipeline_channel: CURRENT` (stable channel), while dev u
 ## Step 7: Run the refresh job
 
 ```bash
-databricks bundle run jira_analytics_refresh -t dev -p <your-profile>
+databricks bundle run jira_analytics_setup -t dev -p <your-profile>
 ```
 
-This runs: Lakeflow Connect ingestion → silver DLT → gold DLT → metric views (when your deployment profile includes metrics).
-
-For metric views only (after gold exists):
-
-```bash
-databricks bundle run jira_build_metrics -t dev -p <your-profile>
-```
+This runs: silver DLT → gold DLT → metric views (when your deployment profile includes metrics). Ingestion runs separately via the `jira_ingestion_pipeline` with its own schedule.
 
 ## Step 8: Verify
 

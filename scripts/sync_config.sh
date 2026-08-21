@@ -206,7 +206,7 @@ fi
 echo ""
 echo "Then run the refresh job:"
 if [[ -n "$CLI_PROFILE" ]]; then
-  echo "  databricks bundle run jira_analytics_refresh -t $TARGET -p $CLI_PROFILE"
+  echo "  databricks bundle run jira_analytics_setup -t $TARGET -p $CLI_PROFILE"
 else
-  echo "  databricks bundle run jira_analytics_refresh -t $TARGET -p <profile>"
+  echo "  databricks bundle run jira_analytics_setup -t $TARGET -p <profile>"
 fi

@@ -28,8 +28,7 @@ The Lakeflow Connect ingestion pipeline always uses PREVIEW because the Jira con
 | UC schemas | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Lakeflow Connect ingestion pipeline | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Silver + gold DLT pipelines | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `jira_analytics_refresh` job | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `jira_build_metrics` job | | ✓ | ✓ | ✓ | ✓ |
+| `jira_analytics_setup` job (silver → gold → metrics task) | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Lakeview dashboard | | | ✓ | | ✓ |
 | Genie space | | | | ✓ | ✓ |
 
@@ -42,7 +41,7 @@ For first-time setup, you can deploy in stages even with `full` profile by tempo
 # Set deployment_profile: "pipeline_only" in pipeline.yaml
 ./scripts/sync_config.sh -t dev -p <profile>
 ./scripts/deploy.sh -t dev -p <profile>
-databricks bundle run jira_analytics_refresh -t dev -p <profile>
+databricks bundle run jira_analytics_setup -t dev -p <profile>
 
 # 2. Add consumption layer
 # Set deployment_profile: "full"

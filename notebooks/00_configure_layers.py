@@ -73,5 +73,5 @@ print(yaml_block)
 # MAGIC ```bash
 # MAGIC ./scripts/sync_config.sh
 # MAGIC databricks bundle deploy -t dev
-# MAGIC databricks bundle run jira_analytics_refresh -t dev
+# MAGIC databricks bundle run jira_analytics_setup -t dev
 # MAGIC ```

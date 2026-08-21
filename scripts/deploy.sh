@@ -7,9 +7,9 @@
 # Usage: ./scripts/deploy.sh [-t dev|prod] [-p <profile>] [--skip-sync] [--skip-ingestion]
 #                            [-- <bundle deploy args>]
 #
-# --skip-ingestion deploys every resource except the Lakeflow Connect ingestion pipeline
-# (and the refresh job that depends on it). Use it when bronze tables already exist or the
-# workspace has no JIRA-type connection.
+# --skip-ingestion deploys every resource except the Lakeflow Connect ingestion pipeline.
+# Use it when bronze tables already exist or the workspace has no JIRA-type connection; the
+# setup job (silver -> gold -> metrics) does not depend on ingestion and still deploys.
 #
 # Args after -- are passed through to 'databricks bundle deploy', e.g.
 #   ./scripts/deploy.sh -t dev -p myprofile -- --select schemas.bronze,pipelines.jira_silver_pipeline
@@ -38,8 +38,8 @@ while [[ $# -gt 0 ]]; do
       echo "Dashboard widget wiring runs automatically via postdeploy hook when applicable."
       echo ""
       echo "  --skip-ingestion  Deploy all resources except the Lakeflow Connect ingestion"
-      echo "                    pipeline and the refresh job that depends on it. Use when"
-      echo "                    bronze already exists or there is no JIRA-type connection."
+      echo "                    pipeline. Use when bronze already exists or there is no"
+      echo "                    JIRA-type connection."
       echo "  --                Forward remaining args to 'databricks bundle deploy'."
       exit 0
       ;;
@@ -70,22 +70,25 @@ if [[ -f "$REPO_ROOT/config/pipeline.yaml" ]]; then
 fi
 
 if [[ "$SKIP_INGESTION" == true ]]; then
-  SUMMARY="$(databricks bundle summary "${DEPLOY_ARGS[@]}" -o json 2>/dev/null)" \
-    || { echo "ERROR: bundle summary failed — cannot compute --select list" >&2; exit 1; }
-  SELECT_LIST="$(SUMMARY_JSON="$SUMMARY" python3 - <<'PY'
+  # Use `bundle validate` (config only) rather than `bundle summary` (config + deployed
+  # state): summary can list resources that were removed from config but still linger in
+  # state, and passing those to --select fails with "no such resource".
+  CONFIG_JSON="$(databricks bundle validate "${DEPLOY_ARGS[@]}" -o json 2>/dev/null)" \
+    || { echo "ERROR: bundle validate failed — cannot compute --select list" >&2; exit 1; }
+  SELECT_LIST="$(CONFIG_JSON="$CONFIG_JSON" python3 - <<'PY'
 import json, os
 
-# jira_analytics_refresh has an ingest_bronze task depending on the ingestion pipeline,
-# so it cannot deploy when the pipeline is excluded.
-EXCLUDED = {"pipelines.jira_ingestion_pipeline", "jobs.jira_analytics_refresh"}
-resources = json.loads(os.environ["SUMMARY_JSON"]).get("resources", {})
+# Only the ingestion pipeline is excluded; the setup job (silver -> gold -> metrics)
+# no longer depends on it, so it still deploys and is runnable from the UI.
+EXCLUDED = {"pipelines.jira_ingestion_pipeline"}
+resources = json.loads(os.environ["CONFIG_JSON"]).get("resources", {})
 keys = [f"{kind}.{name}" for kind, items in resources.items() for name in items]
 print(",".join(k for k in sorted(keys) if k not in EXCLUDED))
 PY
 )"
   [[ -n "$SELECT_LIST" ]] || { echo "ERROR: no deployable resources found" >&2; exit 1; }
   DEPLOY_EXTRA+=(--select "$SELECT_LIST")
-  echo "==> Skipping ingestion pipeline and refresh job; deploying:"
+  echo "==> Skipping ingestion pipeline; deploying:"
   echo "    ${SELECT_LIST//,/, }"
 fi
 
