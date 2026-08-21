@@ -1,5 +1,9 @@
 """Apply Unity Catalog table and column comments from metadata definitions."""
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def _escape_comment(text: str) -> str:
     return text.replace("'", "''")
@@ -9,7 +13,11 @@ def _table_exists(spark, fqn: str) -> bool:
     try:
         spark.table(fqn)
         return True
-    except Exception:
+    except Exception as exc:  # noqa: BLE001 - table may not be materialized yet
+        # Expected when a table has not been created yet; log so genuine
+        # failures (permissions, typos) are visible in the driver logs
+        # rather than silently swallowed.
+        logger.info("Skipping comments for %s: %s", fqn, exc)
         return False
 
 

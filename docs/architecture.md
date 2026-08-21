@@ -52,6 +52,18 @@ See [data-model.md](data-model.md) for the full silver ER diagram.
 
 ![Silver entity-relationship diagram](diagrams/jira_silver_er.png)
 
+### Data Quality Expectations
+
+The silver layer enforces DLT data quality expectations to ensure referential integrity and completeness:
+
+| Expectation | Tables | Behavior | Impact |
+|------------|--------|----------|--------|
+| **Primary key not null** | `issue`, `project`, `user` | `expect_or_fail` — pipeline fails on null ID | Ensures core entities are always valid |
+| **Lookup ID not null** | `status`, `priority`, `resolution`, `issue_type`, `issue_comment`, and dimension/bridge tables | `expect_or_drop` — rows with null IDs are filtered out | Prevents orphaned dimension rows |
+| **History FK not null** | `issue_field_history`, `issue_multiselect_history` | `expect_or_drop` on `issue_id` and `field_id` — rows missing these are dropped | Prevents orphaned change records |
+
+A failed `expect_or_fail` halts the pipeline update; filtered `expect_or_drop` rows are recorded in the DLT expectations audit tables.
+
 ## Gold Marts
 
 SQL DLT materialized views in `src/gold/`:
@@ -82,6 +94,7 @@ Metric views model star-schema **relationships** via YAML `joins` blocks (visibl
 | `metric_assignee_load` | `agg_assignee_load` | `dim_user`, `dim_project` |
 | `metric_team_productivity` | `agg_team_productivity` | `dim_user` |
 | `metric_time_in_status` | `agg_time_in_status` | `dim_project`, `dim_status` |
+| `metric_flow` | `vw_created_resolved_daily` | `dim_project` |
 
 ## Bundle Structure
 

@@ -11,9 +11,10 @@ Includes:
 import dlt
 from pyspark.sql import functions as F
 
-from layer_config import bronze_fqn, pick
+from layer_config import bronze_fqn, conf_value, pick
 
 @dlt.table(name="issue_link", comment="Directed links between issues.")
+@dlt.expect_or_drop("valid_endpoints", "source_issue_id IS NOT NULL AND target_issue_id IS NOT NULL")
 def issue_link():
     src = spark.read.table(bronze_fqn("issue_links"))
     cols = set(src.columns)
@@ -54,6 +55,7 @@ def issue_link_type():
     name="sprint_issue",
     comment="Many-to-many bridge between sprints and issues. Derived from issues.sprint_ids array.",
 )
+@dlt.expect_or_drop("valid_keys", "sprint_id IS NOT NULL AND issue_id IS NOT NULL")
 def sprint_issue():
     issues = spark.read.table(bronze_fqn("issues"))
     cols = set(issues.columns)
@@ -81,6 +83,7 @@ def sprint_issue():
     name="epic_issue",
     comment="Bridge linking child issues to their epic. Derived from issues.parent_id where parent type = Epic.",
 )
+@dlt.expect_or_drop("valid_keys", "epic_id IS NOT NULL AND issue_id IS NOT NULL")
 def epic_issue():
     issues = spark.read.table(bronze_fqn("issues"))
     cols = set(issues.columns)
@@ -94,11 +97,14 @@ def epic_issue():
     issue_types = spark.read.table(bronze_fqn("issue_types")).alias("t")
     parents = spark.read.table(bronze_fqn("issues")).alias("p")
 
+    # Configurable so instances that renamed/localized the Epic issue type still resolve.
+    epic_type_name = conf_value("epic_issue_type_name", "epic").lower()
+
     return (
         issues.alias("c")
         .join(parents, F.col(f"c.{parent_col}") == F.col("p.id"), "inner")
         .join(issue_types, F.col("p.issue_type_id") == F.col("t.id"), "inner")
-        .where(F.lower(F.col("t.name")) == "epic")
+        .where(F.lower(F.col("t.name")) == epic_type_name)
         .select(
             F.col("p.id").cast("string").alias("epic_id"),
             F.col("c.id").cast("string").alias("issue_id"),
@@ -108,6 +114,7 @@ def epic_issue():
 
 
 @dlt.table(name="component", comment="Components (deduped from project_components).")
+@dlt.expect_or_drop("valid_id", "id IS NOT NULL")
 def component():
     src = spark.read.table(bronze_fqn("project_components"))
     cols = set(src.columns)
@@ -150,6 +157,7 @@ def issue_component():
 
 
 @dlt.table(name="version", comment="Versions (deduped from version table).")
+@dlt.expect_or_drop("valid_id", "id IS NOT NULL")
 def version():
     src = spark.read.table(bronze_fqn("version"))
     cols = set(src.columns)

@@ -23,9 +23,13 @@ databricks auth login --host https://<your-workspace>.cloud.databricks.com
 
 ## Jira Connection
 
+The Lakeflow Connect Jira connector requires OAuth U2M authentication, which must be set up interactively:
+
 1. In Catalog Explorer, go to **Connections** and create a Jira connection (OAuth U2M).
 2. Note the connection name — it must match `jira_connection_name` in `config/pipeline.yaml`.
 3. Run an initial Lakeflow Connect ingestion to populate bronze tables before the silver pipeline runs.
+
+In production deployments, the service principal runs the transform and refresh jobs, but the Jira connection setup must remain interactive (no service-principal-based connection auth is available).
 
 ## Permissions
 

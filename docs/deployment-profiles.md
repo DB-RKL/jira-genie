@@ -12,6 +12,15 @@ Choose a profile in `config/pipeline.yaml` via `deployment_profile`. The sync sc
 
 All profiles include `resources/common/schemas.yml` (bronze, silver, gold, metrics schemas).
 
+## DLT Pipeline Channels
+
+The silver and gold DLT pipelines are configured per target:
+
+- **dev**: `pipeline_channel: PREVIEW` — matches the preview-channel Lakeflow Connect Jira source connector
+- **prod**: `pipeline_channel: CURRENT` — uses the stable DLT release channel
+
+The Lakeflow Connect ingestion pipeline always uses PREVIEW because the Jira connector is only available in preview.
+
 ## Resource Matrix
 
 | Resource | pipeline_only | with_metrics | with_dashboard | with_genie | full |
@@ -31,12 +40,14 @@ For first-time setup, you can deploy in stages even with `full` profile by tempo
 ```bash
 # 1. Pipelines only
 # Set deployment_profile: "pipeline_only" in pipeline.yaml
-./scripts/sync_config.sh && databricks bundle deploy -t dev
-databricks bundle run jira_analytics_refresh -t dev
+./scripts/sync_config.sh -t dev -p <profile>
+./scripts/deploy.sh -t dev -p <profile>
+databricks bundle run jira_analytics_refresh -t dev -p <profile>
 
 # 2. Add consumption layer
 # Set deployment_profile: "full"
-./scripts/sync_config.sh && databricks bundle deploy -t dev
+./scripts/sync_config.sh -t dev -p <profile>
+./scripts/deploy.sh -t dev -p <profile>
 ```
 
 Genie and dashboard require metric views to exist before they deploy successfully.

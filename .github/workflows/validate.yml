@@ -9,12 +9,21 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    # Exposed from repo secrets so the bundle-validate step can gate on their
+    # presence. The step is skipped (not failed) when they are unset — e.g. on
+    # forks — so the rest of the checks still run.
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: python3 -m pip install --upgrade pip pytest
 
       - name: Install Databricks CLI
         run: curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
@@ -32,3 +41,10 @@ jobs:
 
       - name: Verify Python scripts compile
         run: python3 -m py_compile scripts/*.py src/silver/*.py src/gold/*.py src/metrics/metric_view_comments.py
+
+      - name: Run unit tests
+        run: python3 -m pytest tests/ -q
+
+      - name: Validate bundle (requires DATABRICKS_HOST/DATABRICKS_TOKEN secrets)
+        if: ${{ env.DATABRICKS_HOST != '' }}
+        run: databricks bundle validate -t dev

@@ -4,5 +4,5 @@ resources:
       display_name: ${var.dashboard_name}
       file_path: ../../dashboards/jira_analytics.lvdash.json
       warehouse_id: ${var.warehouse_id}
-      embed_credentials: true
+      embed_credentials: ${var.dashboard_embed_credentials}
       parent_path: /Users/${var.owner_email}

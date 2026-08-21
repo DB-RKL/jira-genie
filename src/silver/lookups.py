@@ -6,6 +6,7 @@ from pyspark.sql import functions as F
 from layer_config import bronze_fqn, pick
 
 @dlt.table(name="board", comment="Agile boards.")
+@dlt.expect_or_drop("valid_id", "id IS NOT NULL")
 def board():
     src = spark.read.table(bronze_fqn("boards"))
     cols = set(src.columns)
@@ -35,6 +36,7 @@ def project_board():
 
 
 @dlt.table(name="sprint", comment="Sprints.")
+@dlt.expect_or_drop("valid_id", "id IS NOT NULL")
 def sprint():
     src = spark.read.table(bronze_fqn("sprints"))
     cols = set(src.columns)
@@ -105,6 +107,7 @@ def application_role():
 
 
 @dlt.table(name="permission_scheme", comment="Permission schemes.")
+@dlt.expect_or_drop("valid_id", "id IS NOT NULL")
 def permission_scheme():
     src = spark.read.table(bronze_fqn("permission_schemes"))
     return src.select(
@@ -115,6 +118,7 @@ def permission_scheme():
 
 
 @dlt.table(name="security_scheme", comment="Security schemes.")
+@dlt.expect_or_drop("valid_id", "id IS NOT NULL")
 def security_scheme():
     src = spark.read.table(bronze_fqn("security_schemes"))
     cols = set(src.columns)
@@ -131,6 +135,7 @@ def security_scheme():
 
 
 @dlt.table(name="security_level", comment="Security levels within schemes.")
+@dlt.expect_or_drop("valid_id", "id IS NOT NULL")
 def security_level():
     src = spark.read.table(bronze_fqn("security_level"))
     cols = set(src.columns)

@@ -16,8 +16,7 @@ from layer_config import bronze_fqn, pick
     comment="Canonical issue entity (core fields only; custom/historical fields live in issue_field_history).",
     table_properties={"quality": "silver"},
 )
-@dlt.expect_or_drop("valid_id", "id IS NOT NULL")
-@dlt.expect("unique_id", "id IS NOT NULL")
+@dlt.expect_or_fail("issue_id_not_null", "id IS NOT NULL")
 def issue():
     src = spark.read.table(bronze_fqn("issues"))
     projects = spark.read.table(bronze_fqn("projects"))
@@ -93,6 +92,7 @@ def issue_comment():
 
 
 @dlt.table(name="issue_type", comment="Available issue types (Bug, Task, Story, Epic, ...).")
+@dlt.expect_or_drop("valid_id", "id IS NOT NULL")
 def issue_type():
     src = spark.read.table(bronze_fqn("issue_types"))
     cols = set(src.columns)
@@ -107,7 +107,7 @@ def issue_type():
 
 
 @dlt.table(name="project", comment="Jira projects.")
-@dlt.expect_or_drop("valid_id", "id IS NOT NULL")
+@dlt.expect_or_fail("project_id_not_null", "id IS NOT NULL")
 def project():
     src = spark.read.table(bronze_fqn("projects"))
     cols = set(src.columns)
@@ -127,6 +127,7 @@ def project():
 
 
 @dlt.table(name="project_category", comment="Project categories.")
+@dlt.expect_or_drop("valid_id", "id IS NOT NULL")
 def project_category():
     src = spark.read.table(bronze_fqn("project_categories"))
     cols = set(src.columns)
@@ -165,7 +166,7 @@ def project_role_actor():
 
 
 @dlt.table(name="user", comment="Jira users.")
-@dlt.expect_or_drop("valid_id", "account_id IS NOT NULL")
+@dlt.expect_or_fail("account_id_not_null", "account_id IS NOT NULL")
 def user():
     src = spark.read.table(bronze_fqn("users"))
     cols = set(src.columns)
@@ -182,6 +183,7 @@ def user():
 
 
 @dlt.table(name="status", comment="Status lookup.")
+@dlt.expect_or_drop("valid_id", "id IS NOT NULL")
 def status():
     src = spark.read.table(bronze_fqn("status"))
     categories = spark.read.table(bronze_fqn("status_category"))
@@ -216,11 +218,16 @@ def status_category():
     cols = set(src.columns)
     name_col = pick(cols, "name")
 
+    # Prefer Jira's canonical statuscategory key (new / indeterminate / done),
+    # which is stable across locales; only fall back to mapping the English
+    # display name when the source does not expose a key column.
+    source_key = pick(cols, "key", "category_key")
     category_key = (
-        F.when(name_col == "To Do", "new")
+        F.when(source_key.isNotNull(), source_key)
+        .when(name_col == "To Do", "new")
         .when(name_col == "In Progress", "indeterminate")
         .when(name_col == "Done", "done")
-        .otherwise(pick(cols, "key", "category_key"))
+        .otherwise(F.lower(name_col))
     )
 
     return src.select(
@@ -232,6 +239,7 @@ def status_category():
 
 
 @dlt.table(name="priority", comment="Priority lookup.")
+@dlt.expect_or_drop("valid_id", "id IS NOT NULL")
 def priority():
     src = spark.read.table(bronze_fqn("priority"))
     cols = set(src.columns)
@@ -246,6 +254,7 @@ def priority():
 
 
 @dlt.table(name="resolution", comment="Resolution lookup.")
+@dlt.expect_or_drop("valid_id", "id IS NOT NULL")
 def resolution():
     src = spark.read.table(bronze_fqn("resolutions"))
     cols = set(src.columns)

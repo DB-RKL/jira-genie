@@ -105,10 +105,33 @@ fields:
     expr: DATE_TRUNC('MONTH', created_at)
   - name: Resolved Month
     expr: DATE_TRUNC('MONTH', resolved_at)
+  - name: Created Week
+    expr: DATE_TRUNC('WEEK', created_at)
+    synonyms: ['week created']
+  - name: Resolved Week
+    expr: DATE_TRUNC('WEEK', resolved_at)
+    synonyms: ['week resolved']
   - name: Created Date
     expr: CAST(created_at AS DATE)
   - name: Resolved Date
     expr: CAST(resolved_at AS DATE)
+  - name: Due Date
+    expr: CAST(due_date AS DATE)
+  - name: Reporter
+    expr: reporter_name
+    synonyms: ['reporter name']
+  - name: Story Points
+    expr: story_points
+  - name: Priority Group
+    expr: CASE WHEN priority IN ('Highest', 'Critical', 'Blocker') THEN 'Critical' WHEN priority = 'High' THEN 'High' WHEN priority IN ('Medium', 'Major') THEN 'Medium' ELSE 'Low / Other' END
+    synonyms: ['severity band']
+  - name: Is Unassigned
+    expr: assignee_id IS NULL
+  - name: Is Overdue
+    expr: NOT is_resolved AND due_date IS NOT NULL AND CAST(due_date AS DATE) < CURRENT_DATE()
+  - name: Is WIP
+    expr: NOT is_resolved AND status_category_key = 'indeterminate'
+    synonyms: ['in progress flag']
 measures:
   - name: Issue Count
     expr: COUNT(1)
@@ -125,15 +148,51 @@ measures:
   - name: Stale Open
     expr: COUNT_IF(NOT is_resolved AND age_days > 30)
     synonyms: ['aging issues', 'stale']
+  - name: WIP Issues
+    expr: COUNT_IF(NOT is_resolved AND status_category_key = 'indeterminate')
+    synonyms: ['in progress', 'work in progress', 'wip']
+  - name: To Do Issues
+    expr: COUNT_IF(NOT is_resolved AND status_category_key = 'new')
+    synonyms: ['todo', 'to do']
+  - name: Unassigned Open
+    expr: COUNT_IF(NOT is_resolved AND assignee_id IS NULL)
+    synonyms: ['unassigned', 'no owner']
+  - name: Overdue Open
+    expr: COUNT_IF(NOT is_resolved AND due_date IS NOT NULL AND CAST(due_date AS DATE) < CURRENT_DATE())
+    synonyms: ['overdue', 'past due']
+  - name: Created (7d)
+    expr: COUNT_IF(created_at >= CURRENT_DATE() - INTERVAL 7 DAYS)
+    synonyms: ['created last 7 days', 'new issues this week']
+  - name: Created (30d)
+    expr: COUNT_IF(created_at >= CURRENT_DATE() - INTERVAL 30 DAYS)
+    synonyms: ['created last 30 days', 'inflow']
+  - name: Created (90d)
+    expr: COUNT_IF(created_at >= CURRENT_DATE() - INTERVAL 90 DAYS)
+  - name: Resolved (7d)
+    expr: COUNT_IF(is_resolved AND resolved_at >= CURRENT_DATE() - INTERVAL 7 DAYS)
+    synonyms: ['resolved last 7 days']
+  - name: Resolved (30d)
+    expr: COUNT_IF(is_resolved AND resolved_at >= CURRENT_DATE() - INTERVAL 30 DAYS)
+    synonyms: ['resolved last 30 days', 'outflow', 'throughput']
+  - name: Resolved (90d)
+    expr: COUNT_IF(is_resolved AND resolved_at >= CURRENT_DATE() - INTERVAL 90 DAYS)
   - name: Avg Cycle Time (days)
     expr: AVG(cycle_time_days)
   - name: Median Cycle Time (days)
     expr: PERCENTILE_APPROX(cycle_time_days, 0.5)
     synonyms: ['p50 cycle time']
+  - name: P90 Cycle Time (days)
+    expr: PERCENTILE_APPROX(cycle_time_days, 0.9)
+    synonyms: ['p90 cycle time']
   - name: Avg Lead Time (days)
     expr: AVG(lead_time_days)
   - name: Total Story Points
     expr: SUM(story_points)
+  - name: Open Story Points
+    expr: SUM(CASE WHEN NOT is_resolved THEN story_points ELSE 0 END)
+    synonyms: ['backlog points']
+  - name: Resolved Story Points
+    expr: SUM(CASE WHEN is_resolved THEN story_points ELSE 0 END)
   - name: Avg Age (days)
     expr: AVG(age_days)
 $$;
@@ -196,6 +255,12 @@ measures:
     expr: SUM(issues_in_sprint)
   - name: Issues Completed
     expr: SUM(issues_completed)
+  - name: Carryover Points
+    expr: SUM(points_in_sprint) - SUM(points_completed)
+    synonyms: ['spillover points', 'unfinished points']
+  - name: Carryover Issues
+    expr: SUM(issues_in_sprint) - SUM(issues_completed)
+    synonyms: ['spillover issues']
 $$;
 
 
@@ -290,11 +355,19 @@ measures:
   - name: Total Hours
     expr: SUM(time_spent_hours)
     synonyms: ['logged hours', 'effort']
+  - name: Hours (7d)
+    expr: SUM(CASE WHEN work_date >= CURRENT_DATE() - INTERVAL 7 DAYS THEN time_spent_hours ELSE 0 END)
+    synonyms: ['hours last 7 days']
+  - name: Hours (30d)
+    expr: SUM(CASE WHEN work_date >= CURRENT_DATE() - INTERVAL 30 DAYS THEN time_spent_hours ELSE 0 END)
+    synonyms: ['hours last 30 days', 'recent effort']
   - name: Worklog Entries
     expr: COUNT(1)
   - name: Contributors
     expr: COUNT(DISTINCT author_id)
     synonyms: ['unique contributors']
+  - name: Avg Hours per Entry
+    expr: AVG(time_spent_hours)
 $$;
 
 
@@ -345,6 +418,12 @@ measures:
     synonyms: ['resolved last 30 days']
   - name: Created Issues (30d)
     expr: SUM(created_last_30d)
+  - name: Net Backlog Change (30d)
+    expr: SUM(created_last_30d) - SUM(resolved_last_30d)
+    synonyms: ['backlog growth', 'net inflow', 'created vs resolved']
+  - name: Flow Ratio (30d)
+    expr: SUM(resolved_last_30d) / NULLIF(SUM(created_last_30d), 0)
+    synonyms: ['created vs resolved ratio', 'throughput ratio']
 $$;
 
 
@@ -389,6 +468,9 @@ measures:
     expr: SUM(open_story_points)
   - name: Avg Age (days)
     expr: AVG(avg_age_days)
+  - name: Stale Open
+    expr: SUM(CASE WHEN age_bucket IN ('30-90d', '90d+') THEN open_issues ELSE 0 END)
+    synonyms: ['aging load', 'stale load']
 $$;
 
 
@@ -475,4 +557,100 @@ measures:
     synonyms: ['p90 time in status']
   - name: Avg Duration (hours)
     expr: AVG(avg_hours)
+$$;
+
+
+-- Daily created vs resolved spine for the classic Jira flow gadget and Genie.
+CREATE OR REPLACE VIEW {{METRICS_CATALOG}}.{{METRICS_SCHEMA}}.vw_created_resolved_daily
+COMMENT 'Daily created vs resolved counts by project. Source for metric_flow.'
+AS
+WITH created AS (
+  SELECT
+    CAST(created_at AS DATE) AS flow_date,
+    project_id,
+    project_key,
+    project_name,
+    COUNT(*) AS created_issues,
+    SUM(COALESCE(story_points, 0)) AS created_points
+  FROM {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.fct_issue
+  GROUP BY ALL
+),
+resolved AS (
+  SELECT
+    CAST(resolved_at AS DATE) AS flow_date,
+    project_id,
+    project_key,
+    project_name,
+    COUNT(*) AS resolved_issues,
+    SUM(COALESCE(story_points, 0)) AS resolved_points
+  FROM {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.fct_issue
+  WHERE resolved_at IS NOT NULL
+  GROUP BY ALL
+)
+SELECT
+  COALESCE(c.flow_date, r.flow_date) AS flow_date,
+  COALESCE(c.project_id, r.project_id) AS project_id,
+  COALESCE(c.project_key, r.project_key) AS project_key,
+  COALESCE(c.project_name, r.project_name) AS project_name,
+  COALESCE(c.created_issues, 0) AS created_issues,
+  COALESCE(r.resolved_issues, 0) AS resolved_issues,
+  COALESCE(c.created_points, 0) AS created_points,
+  COALESCE(r.resolved_points, 0) AS resolved_points,
+  COALESCE(c.created_issues, 0) - COALESCE(r.resolved_issues, 0) AS net_backlog_change
+FROM created c
+FULL OUTER JOIN resolved r
+  ON c.flow_date <=> r.flow_date
+ AND c.project_id <=> r.project_id;
+
+
+CREATE OR REPLACE VIEW {{METRICS_CATALOG}}.{{METRICS_SCHEMA}}.metric_flow
+WITH METRICS
+LANGUAGE YAML
+COMMENT 'Created vs resolved flow: inflow, outflow, and net backlog change by day.'
+AS $$
+version: 1.1
+source: {{METRICS_CATALOG}}.{{METRICS_SCHEMA}}.vw_created_resolved_daily
+filter: flow_date IS NOT NULL
+joins:
+  - name: project_dim
+    source: {{GOLD_CATALOG}}.{{GOLD_SCHEMA}}.dim_project
+    on: source.project_id = project_dim.project_id
+    cardinality: many_to_one
+    rely:
+      at_most_one_match: true
+fields:
+  - name: Flow Date
+    expr: flow_date
+    synonyms: ['date', 'day']
+  - name: Flow Week
+    expr: DATE_TRUNC('WEEK', flow_date)
+    synonyms: ['week']
+  - name: Flow Month
+    expr: DATE_TRUNC('MONTH', flow_date)
+    synonyms: ['month']
+  - name: Project Key
+    expr: project_key
+    synonyms: ['project']
+  - name: Project Name
+    expr: project_name
+  - name: Project Lead
+    expr: project_dim.lead_name
+  - name: Project Category
+    expr: project_dim.category_name
+measures:
+  - name: Created Issues
+    expr: SUM(created_issues)
+    synonyms: ['created', 'inflow', 'opened']
+  - name: Resolved Issues
+    expr: SUM(resolved_issues)
+    synonyms: ['resolved', 'outflow', 'closed', 'done']
+  - name: Net Backlog Change
+    expr: SUM(net_backlog_change)
+    synonyms: ['backlog growth', 'net change', 'created minus resolved']
+  - name: Created Points
+    expr: SUM(created_points)
+    synonyms: ['created story points']
+  - name: Resolved Points
+    expr: SUM(resolved_points)
+    synonyms: ['resolved story points', 'delivered points']
 $$;

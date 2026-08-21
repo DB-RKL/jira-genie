@@ -34,14 +34,17 @@ METRIC_VIEWS = [
     "metric_assignee_load",
     "metric_team_productivity",
     "metric_time_in_status",
+    "metric_flow",
 ]
 
 COLUMN_CONFIGS: dict[str, list[str]] = {
     "metric_issue": [
         "Issue Key", "Summary", "Project Key", "Project Name", "Project Lead", "Project Category",
-        "Issue Type", "Status", "Status Category", "Priority", "Assignee", "Assignee Email",
-        "Current Sprint", "Sprint State", "Age Bucket", "Age (days)", "Is Resolved",
-        "Created Date", "Resolved Date",
+        "Issue Type", "Status", "Status Category", "Priority", "Priority Group", "Assignee",
+        "Assignee Email", "Reporter", "Current Sprint", "Sprint State", "Age Bucket",
+        "Age (days)", "Is Resolved", "Is Unassigned", "Is Overdue", "Is WIP",
+        "Created Date", "Resolved Date", "Created Week", "Resolved Week", "Due Date",
+        "Story Points",
     ],
     "metric_sprint_velocity": [
         "Sprint", "Sprint State", "Project Key", "Project Name", "Project Lead",
@@ -64,6 +67,10 @@ COLUMN_CONFIGS: dict[str, list[str]] = {
     "metric_time_in_status": [
         "Project Key", "Project Name", "Status", "Status Category",
     ],
+    "metric_flow": [
+        "Flow Date", "Flow Week", "Flow Month", "Project Key", "Project Name", "Project Lead",
+        "Project Category",
+    ],
 }
 
 # Semantic catalog for Genie instructions — keep in sync with metric_views.sql.tmpl.
@@ -80,16 +87,22 @@ METRIC_VIEW_SEMANTICS: dict[str, dict] = {
         ],
         "fields": [
             "Issue Key", "Summary", "Project Key", "Project Name", "Project Lead", "Project Category",
-            "Issue Type", "Status", "Status Category", "Priority", "Assignee", "Assignee Email",
-            "Current Sprint", "Sprint State", "Age Bucket", "Age (days)", "Is Resolved",
-            "Created Date", "Resolved Date", "Created Month", "Resolved Month",
+            "Issue Type", "Status", "Status Category", "Priority", "Priority Group", "Assignee",
+            "Assignee Email", "Reporter", "Current Sprint", "Sprint State", "Age Bucket",
+            "Age (days)", "Is Resolved", "Is Unassigned", "Is Overdue", "Is WIP",
+            "Created Date", "Resolved Date", "Created Week", "Resolved Week", "Created Month",
+            "Resolved Month", "Due Date", "Story Points",
         ],
         "measures": [
             "Issue Count", "Open Issues", "Resolved Issues", "Open Critical", "Stale Open",
-            "Avg Cycle Time (days)", "Median Cycle Time (days)", "Avg Lead Time (days)",
-            "Total Story Points", "Avg Age (days)",
+            "WIP Issues", "To Do Issues", "Unassigned Open", "Overdue Open",
+            "Created (7d)", "Created (30d)", "Created (90d)",
+            "Resolved (7d)", "Resolved (30d)", "Resolved (90d)",
+            "Avg Cycle Time (days)", "Median Cycle Time (days)", "P90 Cycle Time (days)",
+            "Avg Lead Time (days)", "Total Story Points", "Open Story Points",
+            "Resolved Story Points", "Avg Age (days)",
         ],
-        "when_to_use": "Backlog health, cycle/lead time, aging, issue-level drill-down.",
+        "when_to_use": "Backlog health, WIP, unassigned/overdue, cycle/lead time, aging, issue drill-down.",
     },
     "metric_sprint_velocity": {
         "purpose": "Sprint planning vs delivery and completion ratio.",
@@ -104,7 +117,7 @@ METRIC_VIEW_SEMANTICS: dict[str, dict] = {
         ],
         "measures": [
             "Sprint Count", "Points Planned", "Points Completed", "Avg Completion Ratio",
-            "Issues Planned", "Issues Completed",
+            "Issues Planned", "Issues Completed", "Carryover Points", "Carryover Issues",
         ],
         "when_to_use": "Velocity, sprint commitment, carryover, completion trends.",
     },
@@ -136,8 +149,11 @@ METRIC_VIEW_SEMANTICS: dict[str, dict] = {
             "Project Key", "Project Name", "Project Lead", "Author", "Author Email",
             "Work Date", "Work Month",
         ],
-        "measures": ["Total Hours", "Worklog Entries", "Contributors"],
-        "when_to_use": "Effort, capacity, contributor activity.",
+        "measures": [
+            "Total Hours", "Hours (7d)", "Hours (30d)", "Worklog Entries",
+            "Contributors", "Avg Hours per Entry",
+        ],
+        "when_to_use": "Effort, capacity, contributor activity, recent logged time.",
     },
     "metric_project_health": {
         "purpose": "Portfolio-level KPIs per project.",
@@ -150,8 +166,9 @@ METRIC_VIEW_SEMANTICS: dict[str, dict] = {
             "Total Issues", "Open Issues", "Resolved Issues", "Open Critical", "Stale Open",
             "Avg Cycle Time (days)", "Avg Lead Time (days)",
             "Resolved Issues (30d)", "Created Issues (30d)",
+            "Net Backlog Change (30d)", "Flow Ratio (30d)",
         ],
-        "when_to_use": "Executive portfolio view, project comparison, stale/critical backlog.",
+        "when_to_use": "Executive portfolio view, project comparison, backlog growth, stale/critical.",
     },
     "metric_assignee_load": {
         "purpose": "Current open workload by assignee, priority, and age.",
@@ -163,7 +180,7 @@ METRIC_VIEW_SEMANTICS: dict[str, dict] = {
         "fields": [
             "Assignee", "Assignee Email", "Project Key", "Project Name", "Priority", "Age Bucket",
         ],
-        "measures": ["Open Issues", "Open Story Points", "Avg Age (days)"],
+        "measures": ["Open Issues", "Open Story Points", "Avg Age (days)", "Stale Open"],
         "when_to_use": "Who is overloaded, open load by priority, aging assignee backlog.",
     },
     "metric_team_productivity": {
@@ -192,6 +209,22 @@ METRIC_VIEW_SEMANTICS: dict[str, dict] = {
         ],
         "when_to_use": "Status bottleneck heatmaps, compare p50 vs p90 dwell time.",
     },
+    "metric_flow": {
+        "purpose": "Created vs resolved inflow/outflow and net backlog change by day.",
+        "grain": "One row per project per calendar day with created or resolved activity.",
+        "joins": [
+            "vw_created_resolved_daily → dim_project (project_id): Project Lead, Project Category",
+        ],
+        "fields": [
+            "Flow Date", "Flow Week", "Flow Month", "Project Key", "Project Name",
+            "Project Lead", "Project Category",
+        ],
+        "measures": [
+            "Created Issues", "Resolved Issues", "Net Backlog Change",
+            "Created Points", "Resolved Points",
+        ],
+        "when_to_use": "Created vs resolved charts, is the backlog growing, weekly/monthly flow.",
+    },
 }
 
 
@@ -214,6 +247,12 @@ def _render_genie_instructions() -> str:
         "- Velocity — Points Completed on metric_sprint_velocity for closed sprints.",
         "- Critical — priority in Blocker, Critical, or Highest (Open Critical).",
         "- Time in status — P50/P90 Duration (hours) on metric_issue_transitions or metric_time_in_status.",
+        "- Created vs resolved — use metric_flow (Created Issues, Resolved Issues, Net Backlog Change) grouped by Flow Week or Flow Month. Do not union Created Week and Resolved Week from metric_issue.",
+        "- WIP — WIP Issues on metric_issue (open + In Progress).",
+        "- Unassigned — Unassigned Open on metric_issue.",
+        "- Overdue — Overdue Open on metric_issue (open and past Due Date).",
+        "- Flow ratio — Flow Ratio (30d) on metric_project_health (resolved / created). Above 1 means catching up.",
+        "- Carryover — Carryover Points on metric_sprint_velocity (planned minus completed).",
         "",
         "Relationships (star schema — all many-to-one from fact/aggregate source)",
         "- dim_project enriches project context (lead, category, type) on issue, sprint, worklog, and health views.",
@@ -240,8 +279,9 @@ def _render_genie_instructions() -> str:
         "",
         "Cross-view guidance",
         "- Portfolio / project comparison → metric_project_health",
-        "- Sprint velocity / completion → metric_sprint_velocity",
-        "- Individual issue drill-down → metric_issue",
+        "- Created vs resolved / backlog growing? → metric_flow",
+        "- Sprint velocity / completion / carryover → metric_sprint_velocity",
+        "- Individual issue drill-down, WIP, unassigned, overdue → metric_issue",
         "- Workflow / bottlenecks → metric_issue_transitions or metric_time_in_status",
         "- Who is busy → metric_assignee_load",
         "- Who delivers → metric_team_productivity",
@@ -256,6 +296,10 @@ def _render_genie_instructions() -> str:
         "",
         "  SELECT `Assignee Email`, MEASURE(`Open Issues`), MEASURE(`Open Story Points`)",
         "  FROM metric_assignee_load GROUP BY 1 ORDER BY 2 DESC LIMIT 10",
+        "",
+        "  SELECT `Flow Week`, MEASURE(`Created Issues`), MEASURE(`Resolved Issues`),",
+        "         MEASURE(`Net Backlog Change`)",
+        "  FROM metric_flow GROUP BY 1 ORDER BY 1",
     ])
     return "\n".join(lines)
 
@@ -273,6 +317,11 @@ SAMPLE_QUESTIONS = [
     "Which sprints had the worst completion ratio?",
     "Top 10 contributors by total worklog hours last 90 days",
     "What is the distribution of open issues by age bucket?",
+    "Is the backlog growing or shrinking over the last 12 weeks?",
+    "Show created vs resolved issues by week",
+    "How many issues are in progress right now?",
+    "How many open issues are unassigned or overdue?",
+    "Which assignees are overloaded relative to their cycle time?",
 ]
 
 EXAMPLE_SQLS = [
@@ -355,6 +404,36 @@ EXAMPLE_SQLS = [
             "WHERE `Status` = 'In Progress'\n",
             "GROUP BY `Project Name`, `Status`\n",
             "ORDER BY p90_hours DESC",
+        ],
+    },
+    {
+        "question": ["Show created vs resolved issues by week"],
+        "sql": [
+            "SELECT `Flow Week`, MEASURE(`Created Issues`) AS created,\n",
+            "       MEASURE(`Resolved Issues`) AS resolved,\n",
+            "       MEASURE(`Net Backlog Change`) AS net_change\n",
+            "FROM metric_flow\n",
+            "GROUP BY `Flow Week`\n",
+            "ORDER BY `Flow Week`",
+        ],
+    },
+    {
+        "question": ["How many issues are in progress or unassigned?"],
+        "sql": [
+            "SELECT MEASURE(`WIP Issues`) AS wip,\n",
+            "       MEASURE(`Unassigned Open`) AS unassigned,\n",
+            "       MEASURE(`Overdue Open`) AS overdue\n",
+            "FROM metric_issue",
+        ],
+    },
+    {
+        "question": ["Which projects have a growing backlog?"],
+        "sql": [
+            "SELECT `Project Key`, MEASURE(`Net Backlog Change (30d)`) AS net_change,\n",
+            "       MEASURE(`Flow Ratio (30d)`) AS flow_ratio\n",
+            "FROM metric_project_health\n",
+            "GROUP BY `Project Key`\n",
+            "ORDER BY net_change DESC",
         ],
     },
 ]

@@ -11,8 +11,8 @@ WITH first_in_progress AS (
   FROM ${silver_catalog}.${silver_schema}.issue_field_history h
   JOIN ${silver_catalog}.${silver_schema}.status s ON CAST(h.value AS STRING) = CAST(s.id AS STRING)
   JOIN ${silver_catalog}.${silver_schema}.status_category sc ON sc.id = s.status_category_id
-  WHERE h.field_id = 'status'
-    AND sc.category_key = 'indeterminate'
+  WHERE h.field_id = '${status_field_id}'
+    AND sc.category_key = '${in_progress_category_key}'
   GROUP BY h.issue_id
 ),
 current_sprint AS (

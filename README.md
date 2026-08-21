@@ -4,7 +4,7 @@ This repo can be directly deployed in any Databricks workspace that ingests Jira
 
 1. Creates standard pipelines to transform bronze → silver (normalized Jira ERD) → gold analytical marts
 2. Creates Unity Catalog metric views defining governed Jira delivery KPIs
-3. Deploys an AI/BI dashboard for sprint velocity, cycle time, portfolio health, and team productivity
+3. Deploys an AI/BI dashboard (Portfolio, Flow, Sprint, Team) for created vs resolved, cycle time, velocity, and workload
 4. Provisions a curated Genie space for conversational analytics over the same metric views
 
 ## Data Model
@@ -18,7 +18,7 @@ Medallion pipeline from raw Jira ingestion through governed metric views:
 | Bronze | `bronze_schema` | 28 Lakeflow Connect source tables |
 | Silver | `silver_schema` | Normalized ERD: `issue`, `project`, `user`, `sprint_issue`, history |
 | Gold | `gold_schema` | Facts, dimensions, aggregates (`fct_issue`, `fct_sprint_velocity`, …) |
-| Metrics | `metrics_schema` | 8 Unity Catalog metric views (dashboard + Genie SSOT) |
+| Metrics | `metrics_schema` | 9 Unity Catalog metric views (dashboard + Genie SSOT) |
 
 Detailed ER diagrams: [Silver ERD](docs/diagrams/jira_silver_er.png) · [Gold star schema](docs/diagrams/jira_gold_star_schema.png) · [Source (Mermaid)](docs/diagrams/)
 
@@ -33,7 +33,7 @@ cp config/pipeline.example.yaml config/pipeline.yaml
 # 2. Sync, validate, and deploy (use -p for dev so schema prefixes resolve correctly)
 ./scripts/sync_config.sh -t dev -p <your-profile>
 databricks bundle validate -t dev -p <your-profile>
-databricks bundle deploy -t dev -p <your-profile>
+./scripts/deploy.sh -t dev -p <your-profile>   # bundle deploy + auto dashboard widget wiring
 
 # 3. Run the refresh job (ingest → silver → gold → metric views)
 databricks bundle run jira_analytics_refresh -t dev -p <your-profile>
@@ -51,7 +51,7 @@ Read these expectations up front so the first run matches what you see in docs a
 | **Local CLI required** | Run `./scripts/sync_config.sh` on your machine before every `bundle validate` / `deploy`. It patches `databricks.yml`, generates metric SQL and Genie JSON, and prepares the dashboard from the checked-in template. |
 | **Dev schema prefixes** | In `dev` mode, schemas are prefixed with `dev_<user>_` (e.g. `dev_jane_jira_silver`). Always pass `-p <profile>` to `sync_config.sh` so prefixes resolve from your bundle summary. |
 | **Sprint analytics** | Sprint velocity widgets need sprint membership on issues (`issues.sprint_ids` from Connect). Without it, sprint charts may be empty even when other KPIs look fine. |
-| **Dashboard publish** | The bundle deploys a Lakeview dashboard in **draft** state. Open it in the UI and **Publish** when you are ready to share. |
+| **Dashboard publish** | Use `./scripts/deploy.sh` (recommended) or `databricks bundle deploy` — both run a **postdeploy hook** that wires widgets via `push_dashboard.sh` when your profile includes the dashboard. |
 | **Profiles** | `pipeline_only` runs ingest → silver → gold only. Add metrics, dashboard, or Genie via [deployment profiles](docs/deployment-profiles.md). |
 
 Full checklist: [prerequisites](docs/prerequisites.md) · [deployment guide](docs/deployment-guide.md) · [post-deployment](docs/post-deployment.md).

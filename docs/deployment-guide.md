@@ -29,19 +29,13 @@ databricks auth login --host https://<your-workspace>.cloud.databricks.com -p <y
 
 ## Step 4: Sync configuration
 
-For **dev** deployments, pass your CLI profile so schema prefixes resolve correctly:
+Pass your CLI profile so schema prefixes resolve correctly:
 
 ```bash
 ./scripts/sync_config.sh -t dev -p <your-profile>
 ```
 
-For **prod**, profile is optional:
-
-```bash
-./scripts/sync_config.sh -t prod
-```
-
-This validates your config, patches `databricks.yml`, generates metric SQL and Genie JSON, and patches the dashboard from `src/dashboard/jira_analytics.lvdash.json`.
+This validates your config, patches the **dev** target in `databricks.yml`, generates metric SQL and Genie JSON, and patches the dashboard from `src/dashboard/jira_analytics.lvdash.json`. The **prod** target is left as a template — see "Deploying to production" below.
 
 ## Step 5: Validate the bundle
 
@@ -53,15 +47,48 @@ Fix any reported errors before deploying.
 
 ## Step 6: Deploy
 
+Recommended (sync + deploy + automatic dashboard wiring):
+
 ```bash
-databricks bundle deploy -t dev -p <your-profile>
+./scripts/deploy.sh -t dev -p <your-profile>
+```
+
+Or deploy directly — add `--force` when your profile includes the dashboard (postdeploy modifies the remote dashboard via Lakeview API):
+
+```bash
+databricks bundle deploy -t dev -p <your-profile> --force
 ```
 
 For production:
 
 ```bash
-databricks bundle deploy -t prod -p <your-profile>
+./scripts/deploy.sh -t prod -p <your-profile>
 ```
+
+## Step 6b: Deploying to production
+
+The **prod** target in `databricks.yml` is a template that runs unattended as a service principal. Before deploying, fill in the required production variables — either edit `databricks.yml` directly or pass them at deploy time.
+
+Required variables:
+
+- `prod_catalog` — existing Unity Catalog
+- `prod_warehouse_id` — Serverless SQL warehouse ID
+- `prod_owner_email` — notification email and dashboard/Genie folder owner
+- `prod_service_principal` — service principal application ID
+
+Example deploy command:
+
+```bash
+databricks bundle deploy -t prod \
+  --var prod_catalog=jira_prod \
+  --var prod_warehouse_id=abc123def456 \
+  --var prod_owner_email=team@example.com \
+  --var prod_service_principal=<service-principal-app-id>
+```
+
+**Important:** The Lakeflow Connect Jira connector uses OAuth U2M authentication, which requires interactive setup. Even in production, create the Jira connection interactively (via Catalog Explorer → Connections) — the service principal runs only the transform and refresh jobs, not the OAuth connection setup.
+
+The prod pipelines use `pipeline_channel: CURRENT` (stable channel), while dev uses `PREVIEW` to match the preview-channel Jira connector.
 
 ## Step 7: Run the refresh job
 

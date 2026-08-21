@@ -2,7 +2,7 @@
 # This is the ONLY file you need to edit.
 #
 # After updating values, run: ./scripts/sync_config.sh
-# Then deploy with:         databricks bundle deploy -t dev
+# Then deploy with:         ./scripts/deploy.sh -t dev -p <profile>
 #
 # Prerequisites:
 # - Databricks CLI >= 1.3.0 installed and authenticated

@@ -11,7 +11,7 @@ WITH status_changes AS (
     LEAD(h.updated_at) OVER (PARTITION BY h.issue_id ORDER BY h.updated_at) AS exited_at,
     LAG(CAST(h.value AS STRING)) OVER (PARTITION BY h.issue_id ORDER BY h.updated_at) AS prev_status_id_raw
   FROM ${silver_catalog}.${silver_schema}.issue_field_history h
-  WHERE h.field_id = 'status'
+  WHERE h.field_id = '${status_field_id}'
 )
 SELECT
   sc.issue_id,

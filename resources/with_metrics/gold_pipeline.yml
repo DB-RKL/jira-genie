@@ -4,10 +4,9 @@ resources:
       name: jira_gold_pipeline
       catalog: ${var.catalog}
       target: ${resources.schemas.gold.name}
-      channel: PREVIEW
+      channel: ${var.pipeline_channel}
       photon: true
       serverless: true
-      development: true
       continuous: false
       libraries:
         - file:
@@ -34,3 +33,5 @@ resources:
         silver_schema: ${resources.schemas.silver.name}
         gold_catalog: ${var.catalog}
         gold_schema: ${resources.schemas.gold.name}
+        status_field_id: "status"
+        in_progress_category_key: "indeterminate"

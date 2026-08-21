@@ -48,6 +48,15 @@ def silver_catalog_schema() -> tuple[str, str]:
     return _conf("silver_catalog", "catalog"), _conf("silver_schema")
 
 
+def conf_value(key: str, default: str = "") -> str:
+    """Read a pipeline configuration value (spark conf), falling back to a default.
+
+    Used for Jira-instance-specific knobs (e.g. the issue-type name that marks an
+    epic) so they are not hardcoded in transformation logic.
+    """
+    return _conf(key, default=default)
+
+
 def pick(cols: set[str], *names: str, default=None) -> Column:
     """Return the first present column, supporting Lakeflow camelCase and legacy snake_case."""
     for name in names:

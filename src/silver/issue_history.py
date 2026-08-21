@@ -55,8 +55,8 @@ def _field_values():
     name="issue_field_history",
     comment="Scalar field values per issue, with change history. One row per (issue_id, field_id, updated_at).",
 )
-@dlt.expect("not_null_issue", "issue_id IS NOT NULL")
-@dlt.expect("not_null_field", "field_id IS NOT NULL")
+@dlt.expect_or_drop("not_null_issue", "issue_id IS NOT NULL")
+@dlt.expect_or_drop("not_null_field", "field_id IS NOT NULL")
 def issue_field_history():
     fv, array_fields, value_col, updated_col, current_col = _field_values()
 
@@ -76,8 +76,8 @@ def issue_field_history():
     name="issue_multiselect_history",
     comment="Array-valued field values per issue. Multiple rows per (issue_id, field_id, updated_at).",
 )
-@dlt.expect("not_null_issue", "issue_id IS NOT NULL")
-@dlt.expect("not_null_field", "field_id IS NOT NULL")
+@dlt.expect_or_drop("not_null_issue", "issue_id IS NOT NULL")
+@dlt.expect_or_drop("not_null_field", "field_id IS NOT NULL")
 def issue_multiselect_history():
     fv, array_fields, value_col, updated_col, current_col = _field_values()
 

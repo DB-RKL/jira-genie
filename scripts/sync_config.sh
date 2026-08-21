@@ -98,15 +98,39 @@ echo ""
 
 # --- 1. Update databricks.yml profile include ---
 sed -i.bak "s|.*# Updated by sync_config.sh|  - resources/${deployment_profile}/*.yml # Updated by sync_config.sh|" "$BUNDLE"
-
-# --- 2. Patch target variables (dev and prod blocks) ---
-for var in warehouse_id owner_email catalog bronze_schema silver_schema gold_schema metrics_schema jira_connection_name dashboard_name genie_space_name; do
-  val="${!var}"
-  sed -i.bak "s/^      ${var}:.*/      ${var}: \"${val}\"/" "$BUNDLE"
-done
 rm -f "$BUNDLE.bak"
 
-echo "Updated databricks.yml (profile: $deployment_profile)"
+# --- 2. Patch the dev-target variables only ---
+# The prod target is driven by prod_* variables (see databricks.yml) and is left
+# for the deployer to fill in, so we scope replacements to the `dev:` block.
+DEV_VARS_JSON=$(cat <<JSON
+{"warehouse_id":"${warehouse_id}","owner_email":"${owner_email}","catalog":"${catalog}","bronze_schema":"${bronze_schema}","silver_schema":"${silver_schema}","gold_schema":"${gold_schema}","metrics_schema":"${metrics_schema}","jira_connection_name":"${jira_connection_name}","dashboard_name":"${dashboard_name}","genie_space_name":"${genie_space_name}"}
+JSON
+)
+BUNDLE="$BUNDLE" DEV_VARS_JSON="$DEV_VARS_JSON" python3 - <<'PY'
+import json, os, re
+
+bundle = os.environ["BUNDLE"]
+overrides = json.loads(os.environ["DEV_VARS_JSON"])
+lines = open(bundle).read().splitlines()
+
+in_dev = False
+for i, line in enumerate(lines):
+    # 2-space-indented keys delimit target blocks (dev:, prod:) and top-level
+    # variable declarations; only the `dev:` target block should be patched.
+    top = re.match(r"^  (\w+):\s*$", line)
+    if top:
+        in_dev = top.group(1) == "dev"
+        continue
+    if in_dev:
+        m = re.match(r"^      (\w+):", line)
+        if m and m.group(1) in overrides:
+            lines[i] = f'      {m.group(1)}: "{overrides[m.group(1)]}"'
+
+open(bundle, "w").write("\n".join(lines) + "\n")
+PY
+
+echo "Updated databricks.yml dev target (profile: $deployment_profile)"
 
 # --- 3. Resolve dev-mode schema prefixes if bundle is configured ---
 GOLD_SCHEMA="$gold_schema"
@@ -173,10 +197,16 @@ python3 "$REPO_ROOT/scripts/build_assets.py" "${BUILD_ARGS[@]}"
 echo ""
 echo "Done! Deploy with:"
 if [[ -n "$CLI_PROFILE" ]]; then
-  echo "  databricks bundle deploy -t $TARGET -p $CLI_PROFILE"
+  echo "  ./scripts/deploy.sh -t $TARGET -p $CLI_PROFILE"
+  echo ""
+  echo "  (or: databricks bundle deploy -t $TARGET -p $CLI_PROFILE — postdeploy wires dashboard widgets automatically)"
 else
-  echo "  databricks bundle deploy -t $TARGET -p <profile>"
+  echo "  ./scripts/deploy.sh -t $TARGET -p <profile>"
 fi
 echo ""
 echo "Then run the refresh job:"
-echo "  databricks bundle run jira_analytics_refresh -t $TARGET"
+if [[ -n "$CLI_PROFILE" ]]; then
+  echo "  databricks bundle run jira_analytics_refresh -t $TARGET -p $CLI_PROFILE"
+else
+  echo "  databricks bundle run jira_analytics_refresh -t $TARGET -p <profile>"
+fi

@@ -43,7 +43,7 @@ SQL DLT materialized views for delivery analytics:
 
 ## Metrics — Semantic Layer
 
-Eight Unity Catalog metric views sit on top of gold marts and power both the Lakeview dashboard and Genie space. See [architecture.md](architecture.md#metric-views).
+Nine Unity Catalog metric views sit on top of gold marts and power both the Lakeview dashboard and Genie space. See [architecture.md](architecture.md#metric-views). `metric_flow` is sourced from `vw_created_resolved_daily` (created vs resolved by day).
 
 ## Regenerating Diagrams
 

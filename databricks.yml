@@ -2,6 +2,12 @@ bundle:
   name: jira-analytics
   engine: direct
 
+# After every successful bundle deploy, wire Lakeview widgets (bundle file_path alone
+# leaves empty shells). Skipped automatically when deployment_profile has no dashboard.
+experimental:
+  scripts:
+    postdeploy: bash ./scripts/postdeploy.sh
+
 sync:
   include:
     - src/metrics/metric_views.sql
@@ -21,6 +27,7 @@ variables:
     description: Metrics schema for Unity Catalog metric views
   jira_connection_name:
     description: Lakeflow Connect Jira connection name
+    default: ""
   warehouse_id:
     description: SQL warehouse for dashboard, Genie, and jobs
   owner_email:
@@ -29,6 +36,36 @@ variables:
     description: Lakeview dashboard display name
   genie_space_name:
     description: Genie space title
+  pipeline_channel:
+    description: DLT release channel for the silver/gold pipelines (CURRENT for prod; set PREVIEW to match a preview-channel source)
+    default: "CURRENT"
+  dashboard_embed_credentials:
+    description: Embed the publisher's credentials in the dashboard (true for dev demos; false for prod, where an SP owns it and viewers query with their own permissions)
+    default: true
+
+  # --- Production overrides ---------------------------------------------------
+  # The prod target below is a template: fill these in (here, or via --var at
+  # deploy time) before deploying to production. Unlike dev, prod runs unattended
+  # as a service principal. Note: Lakeflow Connect's Jira connector is OAuth U2M
+  # only, so the ingestion connection still has to be created interactively — see
+  # docs/prerequisites.md.
+  # These use obvious fill-me-in placeholders (not empty) so `bundle validate -t prod`
+  # passes; several are required, non-empty fields. Deploy fails until you set real
+  # values via --var (or by editing targets.prod.variables).
+  prod_catalog:
+    description: "[prod] Unity Catalog for the production deployment (must already exist)"
+    default: "REPLACE_WITH_PROD_CATALOG"
+  prod_warehouse_id:
+    description: "[prod] Serverless SQL warehouse ID for dashboard, Genie, and metric jobs"
+    default: "REPLACE_WITH_PROD_WAREHOUSE_ID"
+  prod_owner_email:
+    description: "[prod] Notification email for job-failure alerts and dashboard/Genie folder path"
+    default: "REPLACE_WITH_PROD_OWNER_EMAIL"
+  prod_service_principal:
+    # Placeholder (not empty) so `bundle validate -t prod` passes; run_as requires
+    # a non-empty identity. Deploy fails until you set a real SP app id via --var.
+    description: "[prod] Service principal application ID that runs the prod refresh job unattended"
+    default: "REPLACE_WITH_PROD_SERVICE_PRINCIPAL_APP_ID"
 
 include:
   - resources/common/*.yml
@@ -38,8 +75,13 @@ targets:
   dev:
     default: true
     mode: development
+    presets:
+      name_prefix: ""
     run_as:
       user_name: ${var.owner_email}
+    # Workspace-specific values are filled from config/pipeline.yaml by
+    # scripts/sync_config.sh (run it before validate/deploy). Left blank here so
+    # the tracked template carries no one user's catalog/warehouse/email.
     variables:
       catalog: ""
       bronze_schema: "jira_bronze"
@@ -51,17 +93,34 @@ targets:
       owner_email: ""
       dashboard_name: "Jira Analytics"
       genie_space_name: "Jira Analytics"
+      pipeline_channel: "PREVIEW"
+      dashboard_embed_credentials: true
 
+  # Production target. Values are driven by the prod_* variables above so this
+  # block is NOT overwritten by scripts/sync_config.sh (which only patches dev).
+  # Fill in prod_catalog / prod_warehouse_id / prod_owner_email /
+  # prod_service_principal before deploying, e.g.:
+  #   databricks bundle deploy -t prod \
+  #     --var prod_catalog=jira_prod --var prod_warehouse_id=abc123 \
+  #     --var prod_owner_email=team@example.com --var prod_service_principal=<sp-app-id>
   prod:
     mode: production
+    # DABs recommends setting workspace.root_path explicitly for production. It is
+    # left as the default (per-deployer path) here because the deploying identity
+    # is not known in a template; set it when wiring up your prod CI/CD, e.g.:
+    #   workspace:
+    #     root_path: /Workspace/Users/<prod-sp-or-owner>/.bundle/${bundle.name}/${bundle.target}
     run_as:
-      user_name: ${var.owner_email}
+      service_principal_name: ${var.prod_service_principal}
     variables:
-      catalog: ""
+      catalog: ${var.prod_catalog}
       bronze_schema: "jira_bronze"
       silver_schema: "jira_silver"
       gold_schema: "jira_gold"
       metrics_schema: "jira_metrics"
-      jira_connection_name: ""
-      warehouse_id: ""
-      owner_email: ""
+      warehouse_id: ${var.prod_warehouse_id}
+      owner_email: ${var.prod_owner_email}
+      dashboard_name: "Jira Analytics"
+      genie_space_name: "Jira Analytics"
+      pipeline_channel: "CURRENT"
+      dashboard_embed_credentials: false
