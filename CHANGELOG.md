@@ -13,7 +13,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follo
 
 ### Changed
 
-- Lakeview dashboard is now four Tempo-style audience pages (Portfolio, Flow, Sprint, Team) instead of one 33-widget canvas
+- Lakeview dashboard is a single page with four labeled sections (Portfolio, Flow, Sprint, Team), each introduced by a markdown header
 - Metric views gained Created vs Resolved, WIP, unassigned/overdue, carryover, and windowed inflow/outflow measures for Genie and the dashboard
 - New `metric_flow` view (plus `vw_created_resolved_daily`) for weekly created vs resolved and net backlog change
 - Silver and gold DLT pipelines now use `pipeline_channel` variable (dev=PREVIEW, prod=CURRENT) instead of hardcoded `channel: PREVIEW`

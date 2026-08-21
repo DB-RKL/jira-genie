@@ -108,11 +108,23 @@
   ],
   "pages": [
     {
-      "name": "fbd6e9a4",
-      "displayName": "Portfolio",
+      "name": "52f3d712",
+      "displayName": "Jira Analytics",
       "pageType": "PAGE_TYPE_CANVAS",
       "layoutVersion": "GRID_V1",
       "layout": [
+        {
+          "widget": {
+            "name": "564d09ee",
+            "textbox_spec": "## Portfolio health\n\nBacklog size, inflow vs outflow, and a per-project scorecard."
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 2
+          }
+        },
         {
           "widget": {
             "name": "e0ec0e51",
@@ -241,7 +253,7 @@
           },
           "position": {
             "x": 0,
-            "y": 0,
+            "y": 2,
             "width": 12,
             "height": 2
           }
@@ -289,7 +301,7 @@
           },
           "position": {
             "x": 0,
-            "y": 2,
+            "y": 4,
             "width": 2,
             "height": 2
           }
@@ -337,7 +349,7 @@
           },
           "position": {
             "x": 2,
-            "y": 2,
+            "y": 4,
             "width": 2,
             "height": 2
           }
@@ -385,7 +397,7 @@
           },
           "position": {
             "x": 4,
-            "y": 2,
+            "y": 4,
             "width": 2,
             "height": 2
           }
@@ -433,7 +445,7 @@
           },
           "position": {
             "x": 6,
-            "y": 2,
+            "y": 4,
             "width": 2,
             "height": 2
           }
@@ -481,7 +493,7 @@
           },
           "position": {
             "x": 8,
-            "y": 2,
+            "y": 4,
             "width": 2,
             "height": 2
           }
@@ -529,7 +541,7 @@
           },
           "position": {
             "x": 10,
-            "y": 2,
+            "y": 4,
             "width": 2,
             "height": 2
           }
@@ -608,7 +620,7 @@
           },
           "position": {
             "x": 0,
-            "y": 4,
+            "y": 6,
             "width": 8,
             "height": 5
           }
@@ -679,7 +691,7 @@
           },
           "position": {
             "x": 8,
-            "y": 4,
+            "y": 6,
             "width": 4,
             "height": 5
           }
@@ -839,19 +851,23 @@
           },
           "position": {
             "x": 0,
-            "y": 9,
+            "y": 11,
             "width": 12,
             "height": 6
           }
-        }
-      ]
-    },
-    {
-      "name": "da7b4e4b",
-      "displayName": "Flow",
-      "pageType": "PAGE_TYPE_CANVAS",
-      "layoutVersion": "GRID_V1",
-      "layout": [
+        },
+        {
+          "widget": {
+            "name": "84c53c19",
+            "textbox_spec": "## Flow & cycle time\n\nHow fast work moves, cycle-time distribution, and where it stalls."
+          },
+          "position": {
+            "x": 0,
+            "y": 18,
+            "width": 12,
+            "height": 2
+          }
+        },
         {
           "widget": {
             "name": "2cc2a598",
@@ -962,7 +978,7 @@
           },
           "position": {
             "x": 0,
-            "y": 0,
+            "y": 20,
             "width": 12,
             "height": 2
           }
@@ -1010,7 +1026,7 @@
           },
           "position": {
             "x": 0,
-            "y": 2,
+            "y": 22,
             "width": 2,
             "height": 2
           }
@@ -1058,7 +1074,7 @@
           },
           "position": {
             "x": 2,
-            "y": 2,
+            "y": 22,
             "width": 2,
             "height": 2
           }
@@ -1106,7 +1122,7 @@
           },
           "position": {
             "x": 4,
-            "y": 2,
+            "y": 22,
             "width": 2,
             "height": 2
           }
@@ -1154,7 +1170,7 @@
           },
           "position": {
             "x": 6,
-            "y": 2,
+            "y": 22,
             "width": 2,
             "height": 2
           }
@@ -1202,7 +1218,7 @@
           },
           "position": {
             "x": 8,
-            "y": 2,
+            "y": 22,
             "width": 2,
             "height": 2
           }
@@ -1250,7 +1266,7 @@
           },
           "position": {
             "x": 10,
-            "y": 2,
+            "y": 22,
             "width": 2,
             "height": 2
           }
@@ -1312,7 +1328,7 @@
           },
           "position": {
             "x": 0,
-            "y": 4,
+            "y": 24,
             "width": 6,
             "height": 5
           }
@@ -1383,7 +1399,7 @@
           },
           "position": {
             "x": 6,
-            "y": 4,
+            "y": 24,
             "width": 6,
             "height": 5
           }
@@ -1478,19 +1494,23 @@
           },
           "position": {
             "x": 0,
-            "y": 9,
+            "y": 29,
             "width": 12,
             "height": 6
           }
-        }
-      ]
-    },
-    {
-      "name": "dc4ebef0",
-      "displayName": "Sprint",
-      "pageType": "PAGE_TYPE_CANVAS",
-      "layoutVersion": "GRID_V1",
-      "layout": [
+        },
+        {
+          "widget": {
+            "name": "95a8edba",
+            "textbox_spec": "## Sprint delivery\n\nPlanned vs completed points, completion trend, and sprint outcomes."
+          },
+          "position": {
+            "x": 0,
+            "y": 36,
+            "width": 12,
+            "height": 2
+          }
+        },
         {
           "widget": {
             "name": "b0801957",
@@ -1565,7 +1585,7 @@
           },
           "position": {
             "x": 0,
-            "y": 0,
+            "y": 38,
             "width": 12,
             "height": 2
           }
@@ -1613,7 +1633,7 @@
           },
           "position": {
             "x": 0,
-            "y": 2,
+            "y": 40,
             "width": 2,
             "height": 2
           }
@@ -1661,7 +1681,7 @@
           },
           "position": {
             "x": 2,
-            "y": 2,
+            "y": 40,
             "width": 4,
             "height": 2
           }
@@ -1709,7 +1729,7 @@
           },
           "position": {
             "x": 6,
-            "y": 2,
+            "y": 40,
             "width": 2,
             "height": 2
           }
@@ -1757,7 +1777,7 @@
           },
           "position": {
             "x": 8,
-            "y": 2,
+            "y": 40,
             "width": 4,
             "height": 2
           }
@@ -1836,7 +1856,7 @@
           },
           "position": {
             "x": 0,
-            "y": 4,
+            "y": 42,
             "width": 6,
             "height": 5
           }
@@ -1895,7 +1915,7 @@
           },
           "position": {
             "x": 6,
-            "y": 4,
+            "y": 42,
             "width": 6,
             "height": 5
           }
@@ -2038,19 +2058,23 @@
           },
           "position": {
             "x": 0,
-            "y": 9,
+            "y": 47,
             "width": 12,
             "height": 6
           }
-        }
-      ]
-    },
-    {
-      "name": "59b449fd",
-      "displayName": "Team",
-      "pageType": "PAGE_TYPE_CANVAS",
-      "layoutVersion": "GRID_V1",
-      "layout": [
+        },
+        {
+          "widget": {
+            "name": "ecee7984",
+            "textbox_spec": "## Team & workload\n\nPer-assignee load, throughput, and cycle time."
+          },
+          "position": {
+            "x": 0,
+            "y": 54,
+            "width": 12,
+            "height": 2
+          }
+        },
         {
           "widget": {
             "name": "1e0ef1d4",
@@ -2107,7 +2131,7 @@
           },
           "position": {
             "x": 0,
-            "y": 0,
+            "y": 56,
             "width": 6,
             "height": 2
           }
@@ -2186,7 +2210,7 @@
           },
           "position": {
             "x": 6,
-            "y": 0,
+            "y": 56,
             "width": 6,
             "height": 2
           }
@@ -2234,7 +2258,7 @@
           },
           "position": {
             "x": 0,
-            "y": 2,
+            "y": 58,
             "width": 2,
             "height": 2
           }
@@ -2282,7 +2306,7 @@
           },
           "position": {
             "x": 2,
-            "y": 2,
+            "y": 58,
             "width": 2,
             "height": 2
           }
@@ -2330,7 +2354,7 @@
           },
           "position": {
             "x": 4,
-            "y": 2,
+            "y": 58,
             "width": 2,
             "height": 2
           }
@@ -2378,7 +2402,7 @@
           },
           "position": {
             "x": 6,
-            "y": 2,
+            "y": 58,
             "width": 2,
             "height": 2
           }
@@ -2426,7 +2450,7 @@
           },
           "position": {
             "x": 8,
-            "y": 2,
+            "y": 58,
             "width": 4,
             "height": 2
           }
@@ -2509,7 +2533,7 @@
           },
           "position": {
             "x": 0,
-            "y": 4,
+            "y": 60,
             "width": 6,
             "height": 5
           }
@@ -2574,7 +2598,7 @@
           },
           "position": {
             "x": 6,
-            "y": 4,
+            "y": 60,
             "width": 6,
             "height": 5
           }
@@ -2697,7 +2721,7 @@
           },
           "position": {
             "x": 0,
-            "y": 9,
+            "y": 65,
             "width": 12,
             "height": 6
           }

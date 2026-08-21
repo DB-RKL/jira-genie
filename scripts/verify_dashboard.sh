@@ -46,7 +46,8 @@ layout = [item for p in d["pages"] for item in p["layout"]]
 empty = [
     item["widget"]["spec"]["frame"]["title"]
     for item in layout
-    if not item["widget"].get("queries") or not item["widget"]["spec"].get("encodings")
+    if "spec" in item["widget"]  # skip text/markdown header widgets
+    and (not item["widget"].get("queries") or not item["widget"]["spec"].get("encodings"))
 ]
 ds = next(x for x in d["datasets"] if x["name"] == "ds_project_health")
 sql = ds["queryLines"][0]
@@ -94,7 +95,8 @@ sd = json.loads(remote["serialized_dashboard"])
 layout = [item for p in sd["pages"] for item in p.get("layout", [])]
 empty = sum(
     1 for item in layout
-    if not item["widget"].get("queries") or not item["widget"]["spec"].get("encodings")
+    if "spec" in item["widget"]  # skip text/markdown header widgets
+    and (not item["widget"].get("queries") or not item["widget"]["spec"].get("encodings"))
 )
 ws_empty = None
 ws_path = sys.argv[2]
@@ -103,7 +105,8 @@ if pathlib.Path(ws_path).exists() and pathlib.Path(ws_path).stat().st_size > 0:
     ws_layout = [item for p in ws["pages"] for item in p.get("layout", [])]
     ws_empty = sum(
         1 for item in ws_layout
-        if not item["widget"].get("queries") or not item["widget"]["spec"].get("encodings")
+        if "spec" in item["widget"]  # skip text/markdown header widgets
+        and (not item["widget"].get("queries") or not item["widget"]["spec"].get("encodings"))
     )
 print(json.dumps({
     "display_name": remote.get("display_name", ""),

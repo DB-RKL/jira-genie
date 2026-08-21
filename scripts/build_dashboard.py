@@ -579,12 +579,38 @@ def build_dashboard(
         ], "Assignee scorecard"), 0, 9, 6, 6),
     ]
 
-    pages = [
-        page("portfolio", "Portfolio", portfolio),
-        page("flow", "Flow", flow),
-        page("sprint", "Sprint", sprint),
-        page("team", "Team", team),
+    def header(md: str, label: str) -> dict:
+        # Markdown/text widget: no queries or spec, just serialized markdown.
+        return {"name": hid(f"header:{label}"), "textbox_spec": md}
+
+    def shift(items: list, dy: int) -> list:
+        return [(w, x, y + dy, ww, hh) for (w, x, y, ww, hh) in items]
+
+    def section_height(items: list) -> int:
+        return max(y + hh for (_, _, y, _, hh) in items)
+
+    # Single page: each section gets a markdown header, then its widgets, stacked.
+    sections = [
+        ("portfolio", "Portfolio health",
+         "Backlog size, inflow vs outflow, and a per-project scorecard.", portfolio),
+        ("flow", "Flow & cycle time",
+         "How fast work moves, cycle-time distribution, and where it stalls.", flow),
+        ("sprint", "Sprint delivery",
+         "Planned vs completed points, completion trend, and sprint outcomes.", sprint),
+        ("team", "Team & workload",
+         "Per-assignee load, throughput, and cycle time.", team),
     ]
+
+    HEADER_H, GAP = 2, 1
+    combined: list = []
+    cursor = 0
+    for label, title, subtitle, items in sections:
+        combined.append((header(f"## {title}\n\n{subtitle}", label), 0, cursor, 6, HEADER_H))
+        cursor += HEADER_H
+        combined += shift(items, cursor)
+        cursor += section_height(items) + GAP
+
+    pages = [page("overview", "Jira Analytics", combined)]
 
     dashboard = {
         "datasets": datasets,
