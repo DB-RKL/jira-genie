@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for your interest in contributing to Jira Analytics.
+Thank you for your interest in contributing to Jira Genie.
 
 ## Contributor License Agreement
 

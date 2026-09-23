@@ -1,8 +1,8 @@
 """Generate the Lakeview dashboard JSON for Jira analytics (semantic layer).
 
 Datasets query Unity Catalog metric views with MEASURE(). The checked-in template
-at src/dashboard/jira_analytics.lvdash.json uses {dashboard_catalog} and
-{dashboard_schema} placeholders; sync_config.sh patches dashboards/jira_analytics.lvdash.json.
+at src/dashboard/jira_genie.lvdash.json uses {dashboard_catalog} and
+{dashboard_schema} placeholders; sync_config.sh patches dashboards/jira_genie.lvdash.json.
 
 Regenerate template:  python scripts/build_assets.py --regenerate-dashboard
 """
@@ -15,7 +15,7 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_OUTPUT = ROOT / "src" / "dashboard" / "jira_analytics.lvdash.json"
+DEFAULT_OUTPUT = ROOT / "src" / "dashboard" / "jira_genie.lvdash.json"
 
 COLOR_PRIMARY = "#1B5E20"
 PALETTE = ["#1B5E20", "#00A972", "#FFAB00", "#FF3621", "#8BCAE7", "#AB4057", "#919191"]
@@ -27,7 +27,7 @@ def hid(label: str = "") -> str:
     """Deterministic widget/page id (stable across regenerations)."""
     global _id_counter
     _id_counter += 1
-    seed = f"jira-analytics:{label}:{_id_counter}"
+    seed = f"jira-genie:{label}:{_id_counter}"
     return hashlib.sha256(seed.encode()).hexdigest()[:8]
 
 
@@ -610,7 +610,7 @@ def build_dashboard(
         combined += shift(items, cursor)
         cursor += section_height(items) + GAP
 
-    pages = [page("overview", "Jira Analytics", combined)]
+    pages = [page("overview", "Jira Genie", combined)]
 
     dashboard = {
         "datasets": datasets,

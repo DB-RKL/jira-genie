@@ -8,7 +8,7 @@ config/workspace.yml
 # Generated artifacts (produced by scripts/sync_config.sh)
 src/metrics/metric_views.sql
 src/genie/*.geniespace.json
-dashboards/jira_analytics.lvdash.json
+dashboards/jira_genie.lvdash.json
 
 # Packaging artifacts
 *.zip

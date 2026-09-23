@@ -1,4 +1,4 @@
-# Extending Jira Analytics
+# Extending Jira Genie
 
 ## Adding a Metric View
 
@@ -17,11 +17,11 @@ AS SELECT ...
 
 ## Adding Dashboard Widgets
 
-The checked-in dashboard template lives at [`src/dashboard/jira_analytics.lvdash.json`](../src/dashboard/jira_analytics.lvdash.json) with **unqualified** metric view names (e.g. `FROM metric_issue`). `sync_config.sh` copies it to `dashboards/jira_analytics.lvdash.json`; catalog and schema are injected at deploy time via `dataset_catalog` / `dataset_schema` in the bundle dashboard resource.
+The checked-in dashboard template lives at [`src/dashboard/jira_genie.lvdash.json`](../src/dashboard/jira_genie.lvdash.json) with **unqualified** metric view names (e.g. `FROM metric_issue`). `sync_config.sh` copies it to `dashboards/jira_genie.lvdash.json`; catalog and schema are injected at deploy time via `dataset_catalog` / `dataset_schema` in the bundle dashboard resource.
 
 1. Edit [`scripts/build_dashboard.py`](../scripts/build_dashboard.py) — add datasets and widgets
 2. Regenerate the template: `python scripts/build_assets.py --regenerate-dashboard`
-3. Run `./scripts/sync_config.sh` to patch `dashboards/jira_analytics.lvdash.json` for deploy
+3. Run `./scripts/sync_config.sh` to patch `dashboards/jira_genie.lvdash.json` for deploy
 4. Redeploy with `databricks bundle deploy -t dev -p <profile>`
 
 ## Adding Silver Tables

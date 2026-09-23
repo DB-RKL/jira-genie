@@ -2,7 +2,7 @@
 # Bundle post-deploy hook: wire Lakeview dashboard widgets after bundle deploy.
 #
 # bundle deploy via file_path leaves widgets as empty shells (queries: [] / encodings: {}).
-# This script runs push_dashboard.sh when the bundle includes jira_analytics_dashboard.
+# This script runs push_dashboard.sh when the bundle includes jira_genie_dashboard.
 #
 # Invoked automatically from databricks.yml experimental.scripts.postdeploy.
 # Also safe to run manually after bundle deploy.
@@ -25,13 +25,13 @@ summary="$(databricks bundle summary "${SUMMARY_ARGS[@]}" 2>/dev/null)" || {
 HAS_DASH="$(SUMMARY_JSON="$summary" python3 - <<'PY'
 import json, os, sys
 d = json.loads(os.environ["SUMMARY_JSON"])
-dash = d.get("resources", {}).get("dashboards", {}).get("jira_analytics_dashboard")
+dash = d.get("resources", {}).get("dashboards", {}).get("jira_genie_dashboard")
 print("1" if dash and dash.get("id") else "0")
 PY
 )"
 
 if [[ "$HAS_DASH" != "1" ]]; then
-  echo "postdeploy: no jira_analytics_dashboard in bundle — skipping dashboard widget wiring"
+  echo "postdeploy: no jira_genie_dashboard in bundle — skipping dashboard widget wiring"
   exit 0
 fi
 

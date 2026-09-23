@@ -3,8 +3,8 @@
 
 Outputs:
   - src/metrics/metric_views.sql       (from metric_views.sql.tmpl)
-  - src/genie/jira_analytics.geniespace.json
-  - src/dashboard/jira_analytics.lvdash.json  (--regenerate-dashboard only)
+  - src/genie/jira_genie.geniespace.json
+  - src/dashboard/jira_genie.lvdash.json  (--regenerate-dashboard only)
 
 Usage:
   python scripts/build_assets.py
@@ -506,7 +506,7 @@ def render_metric_views(
 
 def render_genie_space(catalog: str, metrics_schema: str, metrics_catalog: str | None = None) -> Path:
     metrics_catalog = metrics_catalog or catalog
-    out_path = ROOT / "src/genie/jira_analytics.geniespace.json"
+    out_path = ROOT / "src/genie/jira_genie.geniespace.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     tables = []
@@ -584,7 +584,7 @@ def main() -> None:
     render_genie_space(catalog, metrics_schema, metrics_catalog)
     if args.regenerate_dashboard:
         build_dashboard(
-            ROOT / "src" / "dashboard" / "jira_analytics.lvdash.json",
+            ROOT / "src" / "dashboard" / "jira_genie.lvdash.json",
             metrics_catalog="{dashboard_catalog}",
             metrics_schema="{dashboard_schema}",
         )

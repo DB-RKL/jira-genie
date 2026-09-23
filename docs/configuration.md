@@ -19,8 +19,8 @@ cp config/pipeline.example.yaml config/pipeline.yaml
 | `gold_schema` | Yes | Gold marts schema (default: `jira_gold`) |
 | `metrics_schema` | Yes | Metric views schema (default: `jira_metrics`) |
 | `jira_connection_name` | Yes | Lakeflow Connect Jira connection name |
-| `dashboard_name` | No | Lakeview dashboard title (default: `Jira Analytics`) |
-| `genie_space_name` | No | Genie space title (default: `Jira Analytics`) |
+| `dashboard_name` | No | Lakeview dashboard title (default: `Jira Genie`) |
+| `genie_space_name` | No | Genie space title (default: `Jira Genie`) |
 | `pipeline_channel` | No | DLT release channel for silver/gold pipelines (default: `PREVIEW` for dev, `CURRENT` for prod) |
 | `prod_catalog` | No | [prod only] Unity Catalog for production deployment (must exist; default empty) |
 | `prod_warehouse_id` | No | [prod only] Serverless SQL warehouse ID for production dashboard/Genie/metrics (default empty) |
@@ -42,8 +42,8 @@ metrics_schema: "jira_metrics"
 
 jira_connection_name: "my-jira-connection"
 
-dashboard_name: "Jira Analytics"
-genie_space_name: "Jira Analytics"
+dashboard_name: "Jira Genie"
+genie_space_name: "Jira Genie"
 ```
 
 ## Sync Workflow (Dev Target)
@@ -59,7 +59,7 @@ This script:
 1. Validates required fields
 2. Updates `databricks.yml` with your values and selected deployment profile
 3. Resolves dev-mode schema prefixes via `bundle summary` (dev targets)
-4. Copies `dashboards/jira_analytics.lvdash.json` from the checked-in template (unqualified metric view names; catalog/schema set by the bundle dashboard resource)
+4. Copies `dashboards/jira_genie.lvdash.json` from the checked-in template (unqualified metric view names; catalog/schema set by the bundle dashboard resource)
 5. Generates `src/metrics/metric_views.sql` and Genie space JSON
 
 Then validate and deploy:

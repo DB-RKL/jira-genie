@@ -9,7 +9,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DASHBOARD_JSON="$REPO_ROOT/dashboards/jira_analytics.lvdash.json"
+DASHBOARD_JSON="$REPO_ROOT/dashboards/jira_genie.lvdash.json"
 TARGET="dev"
 CLI_PROFILE="${DATABRICKS_CONFIG_PROFILE:-}"
 
@@ -69,12 +69,12 @@ SUMMARY="$(databricks bundle summary "${BUNDLE_ARGS[@]}" 2>/dev/null)" || fail "
 DASHBOARD_ID="$(python3 -c "
 import json,sys
 d=json.loads(sys.argv[1])
-print(d.get('resources',{}).get('dashboards',{}).get('jira_analytics_dashboard',{}).get('id',''))
+print(d.get('resources',{}).get('dashboards',{}).get('jira_genie_dashboard',{}).get('id',''))
 " "$SUMMARY")"
 WAREHOUSE_ID="$(python3 -c "
 import json,sys
 d=json.loads(sys.argv[1])
-print(d.get('resources',{}).get('dashboards',{}).get('jira_analytics_dashboard',{}).get('warehouse_id',''))
+print(d.get('resources',{}).get('dashboards',{}).get('jira_genie_dashboard',{}).get('warehouse_id',''))
 " "$SUMMARY")"
 [[ -n "$DASHBOARD_ID" ]] || fail "Dashboard not deployed in this workspace/target"
 
@@ -178,7 +178,7 @@ if state != "SUCCEEDED":
     print(f"FAIL: metric query {state}: {err.get('message', err)}")
     sys.exit(1)
 if not data or data[0][0] in (None, "", "0"):
-    print(f"WARN: metric query succeeded but returned {data!r} — run jira_analytics_setup")
+    print(f"WARN: metric query succeeded but returned {data!r} — run jira_genie_setup")
 else:
     print(f"OK:   metric_project_health total_open = {data[0][0]}")
 print("OK:   widget Total open SQL =", widget.get("data"))
@@ -207,4 +207,4 @@ echo ""
 echo "If widgets still look empty in the browser:"
 echo "  1. Run ./scripts/push_dashboard.sh -t $TARGET ${CLI_PROFILE:+-p $CLI_PROFILE}"
 echo "  2. Hard-refresh the published dashboard URL (not draft)"
-echo "  3. Run: databricks bundle run jira_analytics_setup -t $TARGET ${CLI_PROFILE:+-p $CLI_PROFILE}"
+echo "  3. Run: databricks bundle run jira_genie_setup -t $TARGET ${CLI_PROFILE:+-p $CLI_PROFILE}"

@@ -1,12 +1,12 @@
 # Data Model
 
-Visual reference for the Jira Analytics medallion architecture and entity relationships.
+Visual reference for the Jira Genie medallion architecture and entity relationships.
 
 ## Overview
 
 End-to-end flow from Jira Cloud through bronze, silver, gold, and metrics layers to dashboard and Genie:
 
-![Jira Analytics data model overview](diagrams/jira_data_model_overview.png)
+![Jira Genie data model overview](diagrams/jira_data_model_overview.png)
 
 **Source:** [`diagrams/jira_data_model_overview.mmd`](diagrams/jira_data_model_overview.mmd)
 

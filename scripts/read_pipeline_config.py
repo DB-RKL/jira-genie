@@ -37,8 +37,8 @@ def pipeline_config(overrides: dict | None = None) -> dict[str, str]:
     cfg.setdefault("gold_schema", "jira_gold")
     cfg.setdefault("metrics_schema", "jira_metrics")
     cfg.setdefault("deployment_profile", "full")
-    cfg.setdefault("dashboard_name", "Jira Analytics")
-    cfg.setdefault("genie_space_name", "Jira Analytics")
+    cfg.setdefault("dashboard_name", "Jira Genie")
+    cfg.setdefault("genie_space_name", "Jira Genie")
 
     catalog = cfg.get("catalog", "")
     cfg["bronze_catalog"] = cfg.get("bronze_catalog", catalog)

@@ -1,8 +1,8 @@
 resources:
   dashboards:
-    jira_analytics_dashboard:
+    jira_genie_dashboard:
       display_name: ${var.dashboard_name}
-      file_path: ../../dashboards/jira_analytics.lvdash.json
+      file_path: ../../dashboards/jira_genie.lvdash.json
       warehouse_id: ${var.warehouse_id}
       embed_credentials: ${var.dashboard_embed_credentials}
       parent_path: /Users/${var.owner_email}

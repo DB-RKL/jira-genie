@@ -1,4 +1,4 @@
-# Jira Analytics
+# Jira Genie
 
 This repo can be directly deployed in any Databricks workspace that ingests Jira data using [Lakeflow Connect](https://docs.databricks.com/en/connect/index.html). It:
 
@@ -11,7 +11,7 @@ This repo can be directly deployed in any Databricks workspace that ingests Jira
 
 Medallion pipeline from raw Jira ingestion through governed metric views:
 
-![Jira Analytics data model](docs/diagrams/jira_data_model_overview.png)
+![Jira Genie data model](docs/diagrams/jira_data_model_overview.png)
 
 | Layer | Schema | Key objects |
 |-------|--------|-------------|
@@ -26,7 +26,7 @@ Detailed ER diagrams: [Silver ERD](docs/diagrams/jira_silver_er.png) · [Gold st
 
 ```bash
 # 1. Clone and configure
-git clone https://github.com/DB-RKL/jira-analytics.git && cd jira-analytics
+git clone https://github.com/DB-RKL/jira-genie.git && cd jira-genie
 cp config/pipeline.example.yaml config/pipeline.yaml
 # Edit config/pipeline.yaml with your catalog, warehouse, connection, and email
 
@@ -36,7 +36,7 @@ databricks bundle validate -t dev -p <your-profile>
 ./scripts/deploy.sh -t dev -p <your-profile>   # bundle deploy + auto dashboard widget wiring
 
 # 3. Run the refresh job (ingest → silver → gold → metric views)
-databricks bundle run jira_analytics_setup -t dev -p <your-profile>
+databricks bundle run jira_genie_setup -t dev -p <your-profile>
 ```
 
 Open **AI/BI → Dashboards** for the Lakeview dashboard and **Genie** for natural-language Q&A.

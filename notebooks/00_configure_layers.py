@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # Configure Jira Analytics
+# MAGIC # Configure Jira Genie
 # MAGIC
 # MAGIC Use this notebook to pick where each layer lives in Unity Catalog before deploying.
 # MAGIC
@@ -59,8 +59,8 @@ metrics_schema: "{metrics_schema}"
 
 jira_connection_name: "{jira_connection}"
 
-dashboard_name: "Jira Analytics"
-genie_space_name: "Jira Analytics"
+dashboard_name: "Jira Genie"
+genie_space_name: "Jira Genie"
 """
 
 print(yaml_block)
@@ -73,5 +73,5 @@ print(yaml_block)
 # MAGIC ```bash
 # MAGIC ./scripts/sync_config.sh
 # MAGIC databricks bundle deploy -t dev
-# MAGIC databricks bundle run jira_analytics_setup -t dev
+# MAGIC databricks bundle run jira_genie_setup -t dev
 # MAGIC ```

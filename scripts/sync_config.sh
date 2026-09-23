@@ -174,8 +174,8 @@ fi
 rm -f "$summary_err"
 
 # --- 4. Patch dashboard template → deploy artifact ---
-DASHBOARD_TEMPLATE="$REPO_ROOT/src/dashboard/jira_analytics.lvdash.json"
-DASHBOARD_OUT="$REPO_ROOT/dashboards/jira_analytics.lvdash.json"
+DASHBOARD_TEMPLATE="$REPO_ROOT/src/dashboard/jira_genie.lvdash.json"
+DASHBOARD_OUT="$REPO_ROOT/dashboards/jira_genie.lvdash.json"
 mkdir -p "$(dirname "$DASHBOARD_OUT")"
 if [[ ! -f "$DASHBOARD_TEMPLATE" ]]; then
   echo "ERROR: Missing dashboard template $DASHBOARD_TEMPLATE" >&2
@@ -206,7 +206,7 @@ fi
 echo ""
 echo "Then run the refresh job:"
 if [[ -n "$CLI_PROFILE" ]]; then
-  echo "  databricks bundle run jira_analytics_setup -t $TARGET -p $CLI_PROFILE"
+  echo "  databricks bundle run jira_genie_setup -t $TARGET -p $CLI_PROFILE"
 else
-  echo "  databricks bundle run jira_analytics_setup -t $TARGET -p <profile>"
+  echo "  databricks bundle run jira_genie_setup -t $TARGET -p <profile>"
 fi

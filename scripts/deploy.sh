@@ -2,7 +2,7 @@
 # Recommended deploy entrypoint: sync config, bundle deploy, auto-wire dashboard.
 #
 # bundle deploy triggers experimental.scripts.postdeploy (push_dashboard.sh) when
-# the deployment profile includes jira_analytics_dashboard.
+# the deployment profile includes jira_genie_dashboard.
 #
 # Usage: ./scripts/deploy.sh [-t dev|prod] [-p <profile>] [--skip-sync] [--skip-ingestion]
 #                            [-- <bundle deploy args>]

@@ -1,9 +1,9 @@
 resources:
   jobs:
-    jira_analytics_setup:
-      name: "jira-analytics-setup"
+    jira_genie_setup:
+      name: "jira-genie-setup"
       tags:
-        workload: jira-analytics
+        workload: jira-genie
       max_concurrent_runs: 1
       schedule:
         quartz_cron_expression: "0 0 6 * * ?"

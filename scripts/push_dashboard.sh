@@ -10,7 +10,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DASHBOARD_JSON="$REPO_ROOT/dashboards/jira_analytics.lvdash.json"
+DASHBOARD_JSON="$REPO_ROOT/dashboards/jira_genie.lvdash.json"
 TARGET="dev"
 CLI_PROFILE="${DATABRICKS_CONFIG_PROFILE:-}"
 PUBLISH=true
@@ -44,7 +44,7 @@ SUMMARY="$(databricks bundle summary "${BUNDLE_ARGS[@]}" 2>/dev/null)" || {
 DASHBOARD_META="$(python3 - <<'PY' "$SUMMARY"
 import json, sys
 summary = json.loads(sys.argv[1])
-dash = summary.get("resources", {}).get("dashboards", {}).get("jira_analytics_dashboard")
+dash = summary.get("resources", {}).get("dashboards", {}).get("jira_genie_dashboard")
 if not dash or not dash.get("id"):
     raise SystemExit(1)
 print(json.dumps({
@@ -54,7 +54,7 @@ print(json.dumps({
 }))
 PY
 )" || {
-  echo "ERROR: Dashboard resource jira_analytics_dashboard not found in bundle summary." >&2
+  echo "ERROR: Dashboard resource jira_genie_dashboard not found in bundle summary." >&2
   echo "Deploy the bundle with a profile that includes the dashboard (with_dashboard or full)." >&2
   exit 1
 }
@@ -70,7 +70,7 @@ if [[ -z "${DISPLAY_NAME:-}" ]]; then
 fi
 
 if [[ -z "$DASHBOARD_ID" ]]; then
-  echo "ERROR: Dashboard resource jira_analytics_dashboard not found in bundle summary." >&2
+  echo "ERROR: Dashboard resource jira_genie_dashboard not found in bundle summary." >&2
   echo "Deploy the bundle with a profile that includes the dashboard (with_dashboard or full)." >&2
   exit 1
 fi

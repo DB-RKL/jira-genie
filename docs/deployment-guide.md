@@ -3,8 +3,8 @@
 ## Step 1: Clone the repository
 
 ```bash
-git clone https://github.com/DB-RKL/jira-analytics.git
-cd jira-analytics
+git clone https://github.com/DB-RKL/jira-genie.git
+cd jira-genie
 ```
 
 ## Step 2: Configure
@@ -35,7 +35,7 @@ Pass your CLI profile so schema prefixes resolve correctly:
 ./scripts/sync_config.sh -t dev -p <your-profile>
 ```
 
-This validates your config, patches the **dev** target in `databricks.yml`, generates metric SQL and Genie JSON, and patches the dashboard from `src/dashboard/jira_analytics.lvdash.json`. The **prod** target is left as a template — see "Deploying to production" below.
+This validates your config, patches the **dev** target in `databricks.yml`, generates metric SQL and Genie JSON, and patches the dashboard from `src/dashboard/jira_genie.lvdash.json`. The **prod** target is left as a template — see "Deploying to production" below.
 
 ## Step 5: Validate the bundle
 
@@ -93,7 +93,7 @@ The prod pipelines use `pipeline_channel: CURRENT` (stable channel), while dev u
 ## Step 7: Run the refresh job
 
 ```bash
-databricks bundle run jira_analytics_setup -t dev -p <your-profile>
+databricks bundle run jira_genie_setup -t dev -p <your-profile>
 ```
 
 This runs: silver DLT → gold DLT → metric views (when your deployment profile includes metrics). Ingestion runs separately via the `jira_ingestion_pipeline` with its own schedule.
@@ -103,6 +103,6 @@ This runs: silver DLT → gold DLT → metric views (when your deployment profil
 1. **Catalog Explorer** — check schemas `jira_bronze`, `jira_silver`, `jira_gold`, `jira_metrics` (or dev-prefixed names)
 2. **SQL** — `SELECT MEASURE(\`Open Issues\`) FROM <catalog>.<metrics_schema>.metric_project_health`
 3. **AI/BI → Dashboards** — open your dashboard
-4. **Genie** — open the Jira Analytics space
+4. **Genie** — open the Jira Genie space
 
 See [post-deployment.md](post-deployment.md) for scheduling and troubleshooting.

@@ -4,7 +4,7 @@
 
 | Job | Command | Purpose |
 |-----|---------|---------|
-| Full refresh | `databricks bundle run jira_analytics_setup -t dev` | Silver → gold → metrics (profile-dependent). Ingestion via separate `jira_ingestion_pipeline`. |
+| Full refresh | `databricks bundle run jira_genie_setup -t dev` | Silver → gold → metrics (profile-dependent). Ingestion via separate `jira_ingestion_pipeline`. |
 
 The refresh job schedule is paused by default. Enable it in the Databricks Jobs UI or edit `resources/*/orchestration.yml`.
 
@@ -28,9 +28,9 @@ Navigate to **AI/BI → Dashboards** and open your configured dashboard name. Th
 
 ## Using Genie
 
-Open **Genie** and select the Jira Analytics space. Sample questions and example SQL are pre-loaded. Genie queries the same nine metric views as the dashboard.
+Open **Genie** and select the Jira Genie space. Sample questions and example SQL are pre-loaded. Genie queries the same nine metric views as the dashboard.
 
-Re-deploying the bundle with the same `genie_space_name` updates the existing Genie space in place (Databricks Asset Bundles manages the resource by bundle key `jira_analytics_genie`). You do not need a separate create-or-update script.
+Re-deploying the bundle with the same `genie_space_name` updates the existing Genie space in place (Databricks Asset Bundles manages the resource by bundle key `jira_genie_space`). You do not need a separate create-or-update script.
 
 ## Metric Views
 
@@ -86,15 +86,15 @@ This builds the `--select` list from `bundle summary`, excluding two resources:
 |----------|-----|
 | `pipelines.jira_ingestion_pipeline` | Needs a JIRA-type Lakeflow Connect connection |
 
-Because the refresh job is skipped, rebuild the layers directly from the Pipelines UI, or re-add ingestion once a JIRA connection exists. Then run `jira_analytics_setup` to populate metrics.
+Because the refresh job is skipped, rebuild the layers directly from the Pipelines UI, or re-add ingestion once a JIRA connection exists. Then run `jira_genie_setup` to populate metrics.
 
 The equivalent raw CLI command, if you prefer not to use the script:
 
 ```bash
-databricks bundle deploy -t dev -p <your-profile> --force --select schemas.bronze,schemas.silver,schemas.gold,schemas.metrics,pipelines.jira_silver_pipeline,pipelines.jira_gold_pipeline,jobs.jira_analytics_setup,dashboards.jira_analytics_dashboard,genie_spaces.jira_analytics_genie
+databricks bundle deploy -t dev -p <your-profile> --force --select schemas.bronze,schemas.silver,schemas.gold,schemas.metrics,pipelines.jira_silver_pipeline,pipelines.jira_gold_pipeline,jobs.jira_genie_setup,dashboards.jira_genie_dashboard,genie_spaces.jira_genie_space
 ```
 
-Drop `genie_spaces.jira_analytics_genie` or `dashboards.jira_analytics_dashboard` if your `deployment_profile` does not include them. List the exact keys for your profile with:
+Drop `genie_spaces.jira_genie_space` or `dashboards.jira_genie_dashboard` if your `deployment_profile` does not include them. List the exact keys for your profile with:
 
 ```bash
 databricks bundle summary -t dev -p <your-profile> -o json | python3 -c "import json,sys; d=json.load(sys.stdin); [print(f'{k}.{n}') for k,v in d['resources'].items() for n in v]"
@@ -132,7 +132,7 @@ The dashboard has **two bindings** that must both be correct:
 ```bash
 ./scripts/sync_config.sh -t dev -p <your-profile>
 ./scripts/deploy.sh -t dev -p <your-profile>
-databricks bundle run jira_analytics_setup -t dev -p <your-profile>
+databricks bundle run jira_genie_setup -t dev -p <your-profile>
 ```
 
 `deploy.sh` runs `bundle deploy` and the postdeploy hook wires all widgets via the Lakeview API.
@@ -141,7 +141,7 @@ The dashboard reads Unity Catalog **metric views**, not gold tables directly.
 
 1. **Run the refresh job** so gold tables and metric views are populated:
    ```bash
-   databricks bundle run jira_analytics_setup -t dev -p <your-profile>
+   databricks bundle run jira_genie_setup -t dev -p <your-profile>
    ```
 
 2. **Confirm metric views return data:**
@@ -160,7 +160,7 @@ The dashboard reads Unity Catalog **metric views**, not gold tables directly.
 
 Expected after `push_dashboard.sh` or the postdeploy hook runs — the Lakeview API updates the dashboard outside bundle's last-deployed snapshot.
 
-**Fix:** deploy with `--force` (local `dashboards/jira_analytics.lvdash.json` is source of truth; postdeploy re-wires widgets):
+**Fix:** deploy with `--force` (local `dashboards/jira_genie.lvdash.json` is source of truth; postdeploy re-wires widgets):
 
 ```bash
 ./scripts/deploy.sh -t dev -p <your-profile>
@@ -168,7 +168,7 @@ Expected after `push_dashboard.sh` or the postdeploy hook runs — the Lakeview 
 databricks bundle deploy -t dev -p <your-profile> --force
 ```
 
-Only use `databricks bundle generate dashboard --resource jira_analytics_dashboard --force` if you intentionally edited widgets in the UI and want to pull those changes into the repo.
+Only use `databricks bundle generate dashboard --resource jira_genie_dashboard --force` if you intentionally edited widgets in the UI and want to pull those changes into the repo.
 
 ### Dashboard widgets are empty shells (titles only, no data)
 
@@ -185,7 +185,7 @@ Or push only:
 ./scripts/push_dashboard.sh -t dev -p <your-profile>
 ```
 
-The postdeploy hook / `push_dashboard.sh` calls `lakeview update` with the patched `dashboards/jira_analytics.lvdash.json` and publishes.
+The postdeploy hook / `push_dashboard.sh` calls `lakeview update` with the patched `dashboards/jira_genie.lvdash.json` and publishes.
 
 ## Regenerating Artifacts
 

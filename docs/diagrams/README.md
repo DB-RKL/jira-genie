@@ -1,6 +1,6 @@
 # Diagram sources
 
-Mermaid (`.mmd`) sources and rendered PNGs for the Jira Analytics data model.
+Mermaid (`.mmd`) sources and rendered PNGs for the Jira Genie data model.
 
 | File | Description |
 |------|-------------|

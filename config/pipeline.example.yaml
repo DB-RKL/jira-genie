@@ -1,4 +1,4 @@
-# Jira Analytics Pipeline Configuration
+# Jira Genie Pipeline Configuration
 # This is the ONLY file you need to edit.
 #
 # After updating values, run: ./scripts/sync_config.sh
@@ -35,5 +35,5 @@ metrics_schema: "jira_metrics"
 jira_connection_name: ""
 
 # Consumption layer display names
-dashboard_name: "Jira Analytics"
-genie_space_name: "Jira Analytics"
+dashboard_name: "Jira Genie"
+genie_space_name: "Jira Genie"

@@ -1,5 +1,5 @@
 bundle:
-  name: jira-analytics
+  name: jira-genie
   engine: direct
 
 # After every successful bundle deploy, wire Lakeview widgets (bundle file_path alone
@@ -11,7 +11,7 @@ experimental:
 sync:
   include:
     - src/metrics/metric_views.sql
-    - dashboards/jira_analytics.lvdash.json
+    - dashboards/jira_genie.lvdash.json
     - src/genie/*.geniespace.json
 
 variables:
@@ -91,8 +91,8 @@ targets:
       jira_connection_name: ""
       warehouse_id: ""
       owner_email: ""
-      dashboard_name: "Jira Analytics"
-      genie_space_name: "Jira Analytics"
+      dashboard_name: "Jira Genie"
+      genie_space_name: "Jira Genie"
       pipeline_channel: "PREVIEW"
       dashboard_embed_credentials: true
 
@@ -120,7 +120,7 @@ targets:
       metrics_schema: "jira_metrics"
       warehouse_id: ${var.prod_warehouse_id}
       owner_email: ${var.prod_owner_email}
-      dashboard_name: "Jira Analytics"
-      genie_space_name: "Jira Analytics"
+      dashboard_name: "Jira Genie"
+      genie_space_name: "Jira Genie"
       pipeline_channel: "CURRENT"
       dashboard_embed_credentials: false
