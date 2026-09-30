@@ -17,14 +17,19 @@ ARGS=(-t "$TARGET")
 [[ -n "$PROFILE" ]] && ARGS+=(-p "$PROFILE")
 
 SUMMARY_ARGS=("${ARGS[@]}" -o json)
-summary="$(databricks bundle summary "${SUMMARY_ARGS[@]}" 2>/dev/null)" || {
+# Write summary JSON to a temp file and pass its PATH to python. The summary is large; passing
+# it via an env var or argv overflows the exec arg/env limit ("Argument list too long").
+SUMMARY_FILE="$(mktemp)"
+trap 'rm -f "$SUMMARY_FILE"' EXIT
+databricks bundle summary "${SUMMARY_ARGS[@]}" > "$SUMMARY_FILE" 2>/dev/null || {
   echo "postdeploy: bundle summary failed — skip dashboard push (run push_dashboard.sh manually)" >&2
   exit 0
 }
 
-HAS_DASH="$(SUMMARY_JSON="$summary" python3 - <<'PY'
-import json, os, sys
-d = json.loads(os.environ["SUMMARY_JSON"])
+HAS_DASH="$(SUMMARY_FILE="$SUMMARY_FILE" python3 - <<'PY'
+import json, os
+with open(os.environ["SUMMARY_FILE"]) as fh:
+    d = json.load(fh)
 dash = d.get("resources", {}).get("dashboards", {}).get("jira_genie_dashboard")
 print("1" if dash and dash.get("id") else "0")
 PY
@@ -36,4 +41,4 @@ if [[ "$HAS_DASH" != "1" ]]; then
 fi
 
 echo "postdeploy: wiring dashboard widgets and publishing..."
-"$REPO_ROOT/scripts/push_dashboard.sh" "${ARGS[@]}"
+bash "$REPO_ROOT/scripts/push_dashboard.sh" "${ARGS[@]}"

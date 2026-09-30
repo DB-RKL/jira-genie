@@ -36,14 +36,19 @@ fi
 BUNDLE_ARGS=(-t "$TARGET" -o json)
 [[ -n "$CLI_PROFILE" ]] && BUNDLE_ARGS+=(-p "$CLI_PROFILE")
 
-SUMMARY="$(databricks bundle summary "${BUNDLE_ARGS[@]}" 2>/dev/null)" || {
+# Write summary JSON to a temp file and pass its PATH to python. The summary is large; passing
+# it via argv or an env var overflows the exec arg/env limit ("Argument list too long").
+SUMMARY_FILE="$(mktemp)"
+trap 'rm -f "$SUMMARY_FILE"' EXIT
+databricks bundle summary "${BUNDLE_ARGS[@]}" > "$SUMMARY_FILE" 2>/dev/null || {
   echo "ERROR: databricks bundle summary failed. Run sync_config.sh and ensure the bundle is deployed." >&2
   exit 1
 }
 
-DASHBOARD_META="$(python3 - <<'PY' "$SUMMARY"
-import json, sys
-summary = json.loads(sys.argv[1])
+DASHBOARD_META="$(SUMMARY_FILE="$SUMMARY_FILE" python3 - <<'PY'
+import json, os
+with open(os.environ["SUMMARY_FILE"]) as fh:
+    summary = json.load(fh)
 dash = summary.get("resources", {}).get("dashboards", {}).get("jira_genie_dashboard")
 if not dash or not dash.get("id"):
     raise SystemExit(1)
@@ -103,6 +108,6 @@ fi
 
 VERIFY_ARGS=(-t "$TARGET")
 [[ -n "$CLI_PROFILE" ]] && VERIFY_ARGS+=(-p "$CLI_PROFILE")
-"$REPO_ROOT/scripts/verify_dashboard.sh" "${VERIFY_ARGS[@]}" || true
+bash "$REPO_ROOT/scripts/verify_dashboard.sh" "${VERIFY_ARGS[@]}" || true
 
 echo "Done. Dashboard widgets are wired from $DASHBOARD_JSON"

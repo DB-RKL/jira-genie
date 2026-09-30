@@ -28,6 +28,11 @@ See [architecture.md](architecture.md) and [data-model.md](data-model.md) for fu
 
 ## Quick Start
 
+**From the Databricks UI:** add the repo as a Git folder, open `deploy_jira_genie.py` at the repo
+root, fill in the widgets, and Run all. No local setup required.
+
+**From a local CLI:**
+
 ```bash
 cp config/pipeline.example.yaml config/pipeline.yaml
 # Edit config/pipeline.yaml
@@ -37,4 +42,4 @@ cp config/pipeline.example.yaml config/pipeline.yaml
 databricks bundle run jira_genie_setup -t dev -p <your-profile>
 ```
 
-See the [deployment guide](deployment-guide.md) for detailed instructions.
+See the [deployment guide](deployment-guide.md) for detailed instructions (both paths).

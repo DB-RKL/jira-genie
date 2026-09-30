@@ -29,6 +29,13 @@ The Lakeflow Connect Jira connector requires OAuth U2M authentication, which mus
 2. Note the connection name — it must match `jira_connection_name` in `config/pipeline.yaml`.
 3. Run an initial Lakeflow Connect ingestion to populate bronze tables before the silver pipeline runs.
 
+> **The connecting Jira user must be a Jira administrator.** The ingestion pulls admin-scoped
+> objects — security schemes and levels, application roles, project roles, and statuses. A
+> non-admin OAuth user gets `JIRA_ADMIN_PERMISSION_MISSING` / `403` on those source tables, and
+> because a single failed flow fails the whole pipeline update, **no** bronze data lands. Authorize
+> the connection with a Jira admin account, or remove the admin-only tables from
+> `resources/<profile>/ingestion.yml` if you only need issue/project/sprint data.
+
 In production deployments, the service principal runs the transform and refresh jobs, but the Jira connection setup must remain interactive (no service-principal-based connection auth is available).
 
 ## Permissions

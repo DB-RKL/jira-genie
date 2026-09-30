@@ -1,12 +1,16 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # Configure Jira Genie
+# MAGIC # Configure Jira Genie (planning helper)
 # MAGIC
-# MAGIC Use this notebook to pick where each layer lives in Unity Catalog before deploying.
+# MAGIC > **To deploy from the Databricks UI, use [`deploy_jira_genie.py`](../deploy_jira_genie.py)
+# MAGIC > at the repo root** — it configures *and* deploys in one Run-all. This notebook is just a
+# MAGIC > lightweight planner for validating your catalog/schema choices before you run it (or
+# MAGIC > before deploying with the local CLI).
 # MAGIC
 # MAGIC 1. Set the widgets below.
-# MAGIC 2. Run validation cells.
-# MAGIC 3. Copy the generated YAML into **`config/pipeline.yaml`**, then run `./scripts/sync_config.sh`.
+# MAGIC 2. Run the validation cells (checks the catalog, creates schemas).
+# MAGIC 3. Either run `deploy_jira_genie.py`, or copy the generated YAML into
+# MAGIC    **`config/pipeline.yaml`** and run `./scripts/sync_config.sh` from the CLI.
 
 # COMMAND ----------
 
@@ -68,10 +72,15 @@ print(yaml_block)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Deploy (run locally after saving pipeline.yaml)
+# MAGIC ## Next: deploy
+# MAGIC
+# MAGIC **From the Databricks UI (recommended):** open [`deploy_jira_genie.py`](../deploy_jira_genie.py)
+# MAGIC at the repo root, set the same values in its widgets, and Run all.
+# MAGIC
+# MAGIC **From a local CLI** (after saving the YAML above into `config/pipeline.yaml`):
 # MAGIC
 # MAGIC ```bash
-# MAGIC ./scripts/sync_config.sh
-# MAGIC databricks bundle deploy -t dev
-# MAGIC databricks bundle run jira_genie_setup -t dev
+# MAGIC ./scripts/sync_config.sh -t dev -p <profile>
+# MAGIC ./scripts/deploy.sh -t dev -p <profile>
+# MAGIC databricks bundle run jira_genie_setup -t dev -p <profile>
 # MAGIC ```
