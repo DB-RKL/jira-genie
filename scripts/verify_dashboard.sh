@@ -64,18 +64,22 @@ fi
 echo "      Metrics target: $METRICS_FQN"
 
 BUNDLE_ARGS=(-t "$TARGET" -o json "${DB_ARGS[@]}")
-SUMMARY="$(databricks bundle summary "${BUNDLE_ARGS[@]}" 2>/dev/null)" || fail "bundle summary failed — authenticate and deploy first"
+# Write summary JSON to a temp file and pass its PATH to python. Passing the large summary via
+# argv or an env var overflows the exec arg/env limit ("Argument list too long").
+SUMMARY_FILE="$(mktemp)"
+trap 'rm -f "$SUMMARY_FILE"' EXIT
+databricks bundle summary "${BUNDLE_ARGS[@]}" > "$SUMMARY_FILE" 2>/dev/null || fail "bundle summary failed — authenticate and deploy first"
 
 DASHBOARD_ID="$(python3 -c "
 import json,sys
-d=json.loads(sys.argv[1])
+d=json.load(open(sys.argv[1]))
 print(d.get('resources',{}).get('dashboards',{}).get('jira_genie_dashboard',{}).get('id',''))
-" "$SUMMARY")"
+" "$SUMMARY_FILE")"
 WAREHOUSE_ID="$(python3 -c "
 import json,sys
-d=json.loads(sys.argv[1])
+d=json.load(open(sys.argv[1]))
 print(d.get('resources',{}).get('dashboards',{}).get('jira_genie_dashboard',{}).get('warehouse_id',''))
-" "$SUMMARY")"
+" "$SUMMARY_FILE")"
 [[ -n "$DASHBOARD_ID" ]] || fail "Dashboard not deployed in this workspace/target"
 
 REMOTE_JSON="$(mktemp)"
